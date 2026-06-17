@@ -17,6 +17,8 @@ import Profile from './pages/Profile'
 import ProfileEdit from './pages/ProfileEdit'
 import ProfileEditDetails from './pages/ProfileEditDetails'
 import ProfileAddress from './pages/ProfileAddress'
+import Wallet from './pages/Wallet'
+import WalletAddCard from './pages/WalletAddCard'
 import { SearchProvider, useSearchModal } from './context/SearchContext'
 
 function ScrollToTop() {
@@ -54,6 +56,8 @@ function AppContent() {
             <Route path="/profile/edit"         element={<ProfileEdit />} />
             <Route path="/profile/edit-details" element={<ProfileEditDetails />} />
             <Route path="/profile/address"      element={<ProfileAddress />} />
+            <Route path="/wallet"              element={<Wallet />} />
+            <Route path="/wallet/add-card"     element={<WalletAddCard />} />
           </Routes>
         </main>
         <Footer />

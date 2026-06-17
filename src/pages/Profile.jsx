@@ -141,7 +141,8 @@ export default function Profile() {
         </p>
         <p className="text-[38px] font-bold text-white leading-none mb-5">0,00 €</p>
         <button
-          className="px-5 py-[9px] rounded-full text-white text-[13px] font-semibold tracking-wide transition-colors hover:bg-white/10"
+          onClick={() => navigate('/wallet')}
+          className="px-5 py-[9px] rounded-full text-white text-[13px] font-semibold tracking-wide transition-colors hover:bg-white/10 cursor-pointer"
           style={{ border: '1.5px solid rgba(255,255,255,0.55)', background: 'transparent' }}
         >
           Προβολή πορτοφολιού
