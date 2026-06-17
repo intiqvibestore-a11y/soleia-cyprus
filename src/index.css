@@ -1,0 +1,170 @@
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Inter:wght@300;400;500;600;700&display=swap');
+@import "tailwindcss";
+@import 'leaflet/dist/leaflet.css';
+
+@theme {
+  --color-cream: #F5F0EB;
+  --color-cream-light: #FDFAF7;
+  --color-sand: #C9A882;
+  --color-sand-dark: #A8845E;
+  --color-charcoal: #1C1917;
+  --color-warm-gray: #78716C;
+  --color-border: #E8E0D8;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  /* Allow fixed bars to respect iPhone notch */
+  -webkit-text-size-adjust: 100%;
+}
+
+/* Safe-area padding for fixed bottom bars on notched iPhones */
+.safe-area-inset-bottom {
+  padding-bottom: max(1.25rem, env(safe-area-inset-bottom));
+}
+
+body {
+  font-family: 'Inter', system-ui, sans-serif;
+  color: #1C1917;
+  background: #fff;
+  margin: 0;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4 {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+}
+
+.scrollbar-hide::-webkit-scrollbar { display: none; }
+.scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* ── Font utilities ──────────────────────────────────── */
+.font-display {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+}
+.font-display-italic {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-style: italic;
+}
+
+/* ── Keyframes ───────────────────────────────────────── */
+@keyframes fadeSlideUp {
+  from { opacity: 0; transform: translateY(22px); }
+  to   { opacity: 1; transform: translateY(0);    }
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-10px) scaleY(0.96); }
+  to   { opacity: 1; transform: translateY(0)     scaleY(1);    }
+}
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to   { opacity: 1; transform: scale(1);    }
+}
+
+/* ── Animation helpers ───────────────────────────────── */
+.fade-up {
+  opacity: 0;
+  animation: fadeSlideUp 0.8s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+.fade-in { animation: fadeIn 0.6s ease both; }
+.slide-down { animation: slideDown 0.22s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.scale-in   { animation: scaleIn  0.22s cubic-bezier(0.22, 1, 0.36, 1) both; }
+
+.delay-0  { animation-delay: 0ms;   }
+.delay-1  { animation-delay: 100ms; }
+.delay-2  { animation-delay: 200ms; }
+.delay-3  { animation-delay: 320ms; }
+.delay-4  { animation-delay: 460ms; }
+.delay-5  { animation-delay: 600ms; }
+
+/* ── Card micro-lift ─────────────────────────────────── */
+.card-lift {
+  transition: transform 0.35s cubic-bezier(0.22,1,0.36,1),
+              box-shadow 0.35s cubic-bezier(0.22,1,0.36,1);
+}
+.card-lift:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 20px 48px rgba(28,25,23,0.11);
+}
+
+/* ── Button press ────────────────────────────────────── */
+.btn-press {
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+.btn-press:active { transform: scale(0.96); }
+
+/* ── Underline slide ─────────────────────────────────── */
+.link-underline {
+  position: relative;
+}
+.link-underline::after {
+  content: '';
+  position: absolute;
+  bottom: -2px; left: 0;
+  width: 0; height: 1px;
+  background: #C9A882;
+  transition: width 0.25s ease;
+}
+.link-underline:hover::after { width: 100%; }
+
+/* ── Custom cursor (pointer devices only) ────────────── */
+@media (pointer: fine) {
+  *, *::before, *::after { cursor: none !important; }
+  input, textarea        { cursor: text   !important; }
+
+  .cursor-dot {
+    position: fixed;
+    top: 0; left: 0;
+    width: 6px; height: 6px;
+    background: #1C1917;
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 99999;
+    will-change: transform;
+    transition: opacity 0.2s, width 0.25s ease, height 0.25s ease, background 0.2s;
+  }
+  .cursor-dot.is-hover  { opacity: 0; }
+  .cursor-dot.is-hidden { opacity: 0; }
+
+  .cursor-ring {
+    position: fixed;
+    top: 0; left: 0;
+    width: 30px; height: 30px;
+    border: 1.5px solid rgba(201,168,130,0.65);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 99998;
+    will-change: transform;
+    transition: width 0.35s cubic-bezier(0.22,1,0.36,1),
+                height 0.35s cubic-bezier(0.22,1,0.36,1),
+                border-color 0.25s ease,
+                background   0.25s ease,
+                opacity      0.2s;
+  }
+  .cursor-ring.is-hover {
+    width: 46px; height: 46px;
+    border-color: #C9A882;
+    background: rgba(201,168,130,0.08);
+  }
+  .cursor-ring.is-hidden { opacity: 0; }
+}
+
+#root {
+  width: 100%;
+  min-height: 100vh;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

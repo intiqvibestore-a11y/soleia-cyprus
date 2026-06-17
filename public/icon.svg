@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" fill="#F5F0EB"/>
+  <!-- Soleia sun logo: original 46×36 viewBox scaled ×9, centered in 512×512 -->
+  <!-- Content center (23,19) × 9 = (207,171), offset to (256,240): translate(49,69) -->
+  <g transform="translate(49, 69) scale(9)" fill="none" stroke="#C9A882" stroke-linecap="round">
+    <path d="M10 28C10 20.82 15.59 15 23 15C30.41 15 36 20.82 36 28" stroke-width="1.8"/>
+    <path d="M7 31.5Q14.5 27.5 23 31.5Q31.5 35.5 39 31.5" stroke-width="1.8"/>
+    <line x1="23" y1="12" x2="23" y2="6.5" stroke-width="1.6"/>
+    <line x1="31.5" y1="14.5" x2="34.5" y2="10.5" stroke-width="1.6"/>
+    <line x1="14.5" y1="14.5" x2="11.5" y2="10.5" stroke-width="1.6"/>
+    <line x1="37.5" y1="20.5" x2="41.5" y2="18" stroke-width="1.6"/>
+    <line x1="8.5" y1="20.5" x2="4.5" y2="18" stroke-width="1.6"/>
+    <line x1="39.5" y1="26.5" x2="43.5" y2="25.5" stroke-width="1.5"/>
+    <line x1="6.5" y1="26.5" x2="2.5" y2="25.5" stroke-width="1.5"/>
+  </g>
+</svg>
