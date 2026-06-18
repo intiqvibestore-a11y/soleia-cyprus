@@ -21,6 +21,7 @@ import ProfileAddress from './pages/ProfileAddress'
 import Wallet from './pages/Wallet'
 import WalletAddCard from './pages/WalletAddCard'
 import Messages from './pages/Messages'
+import MessagesArchived from './pages/MessagesArchived'
 import { SearchProvider, useSearchModal } from './context/SearchContext'
 
 // ── Splash screen ─────────────────────────────────────────────────────────────
@@ -128,6 +129,7 @@ function AppContent() {
             <Route path="/wallet"              element={<Wallet />} />
             <Route path="/wallet/add-card"     element={<WalletAddCard />} />
             <Route path="/messages"            element={<Messages />} />
+            <Route path="/messages/archived"  element={<MessagesArchived />} />
           </Routes>
         </main>
         <Footer />

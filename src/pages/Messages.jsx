@@ -1,3 +1,4 @@
+import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ArrowLeft, MoreVertical } from 'lucide-react'
 
@@ -14,15 +15,9 @@ function ChatIllustration() {
           <stop offset="1" stopColor="#9B7540" />
         </linearGradient>
       </defs>
-
-      {/* Main (left) bubble */}
       <rect x="0" y="0" width="62" height="54" rx="18" fill="url(#msgA)" />
-      {/* Tail */}
       <path d="M8 54 L4 68 L24 60 Z" fill="url(#msgA)" />
-
-      {/* Secondary (right) bubble — slightly overlapping */}
       <rect x="38" y="22" width="58" height="50" rx="16" fill="url(#msgB)" />
-      {/* Tail */}
       <path d="M84 72 L92 84 L68 78 Z" fill="url(#msgB)" />
     </svg>
   )
@@ -30,28 +25,73 @@ function ChatIllustration() {
 
 export default function Messages() {
   const navigate = useNavigate()
+  const [menuOpen, setMenuOpen] = useState(false)
+  const menuRef = useRef(null)
+
+  // Close dropdown when clicking/tapping outside it
+  useEffect(() => {
+    if (!menuOpen) return
+    const handleOutside = (e) => {
+      if (menuRef.current && !menuRef.current.contains(e.target)) {
+        setMenuOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleOutside)
+    document.addEventListener('touchstart', handleOutside)
+    return () => {
+      document.removeEventListener('mousedown', handleOutside)
+      document.removeEventListener('touchstart', handleOutside)
+    }
+  }, [menuOpen])
 
   return (
-    <div className="min-h-screen bg-white pt-[62px]">
+    <div className="min-h-screen bg-[#F5F0EB] pt-[62px]">
 
       {/* ── Page header ── */}
       <div className="flex items-center justify-between px-4 py-3">
         <button
           onClick={() => navigate('/profile')}
-          className="w-9 h-9 flex items-center justify-center rounded-full transition-colors hover:bg-[#F5F0EB] cursor-pointer"
+          className="w-9 h-9 flex items-center justify-center rounded-full transition-colors hover:bg-[#EDE8E2] cursor-pointer"
           style={{ background: 'none', border: 'none' }}
           aria-label="Πίσω"
         >
           <ArrowLeft className="w-5 h-5" style={{ color: '#1C1917' }} strokeWidth={2} />
         </button>
 
-        <button
-          className="w-9 h-9 flex items-center justify-center rounded-full transition-colors hover:bg-[#F5F0EB] cursor-pointer"
-          style={{ background: 'none', border: 'none' }}
-          aria-label="Επιλογές"
-        >
-          <MoreVertical className="w-5 h-5" style={{ color: '#1C1917' }} strokeWidth={2} />
-        </button>
+        {/* Three-dot menu with dropdown */}
+        <div className="relative" ref={menuRef}>
+          <button
+            onClick={() => setMenuOpen(v => !v)}
+            className="w-9 h-9 flex items-center justify-center rounded-full transition-colors hover:bg-[#EDE8E2] cursor-pointer"
+            style={{ background: 'none', border: 'none' }}
+            aria-label="Επιλογές"
+          >
+            <MoreVertical className="w-5 h-5" style={{ color: '#1C1917' }} strokeWidth={2} />
+          </button>
+
+          {menuOpen && (
+            <div
+              className="absolute right-0 top-11 z-[100] rounded-xl overflow-hidden"
+              style={{
+                background: 'white',
+                minWidth: 188,
+                boxShadow: '0 4px 20px rgba(28,25,23,0.12), 0 1px 4px rgba(28,25,23,0.06)',
+                border: '1px solid rgba(201,168,130,0.18)',
+              }}
+            >
+              <button
+                onClick={() => {
+                  setMenuOpen(false)
+                  navigate('/messages/archived')
+                }}
+                className="w-full text-left px-4 py-3.5 text-[15px] cursor-pointer transition-colors hover:bg-[#FAF6F1]"
+                style={{ background: 'none', border: 'none', color: '#1C1917' }}
+              >
+                Αρχειοθετημένες
+              </button>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* ── Title ── */}
