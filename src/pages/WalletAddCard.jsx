@@ -68,6 +68,8 @@ function AddCardForm() {
     if (!stripe || !elements || !user) return
     setSaving(true)
     setError('')
+
+    // Step 1: tokenise the card with Stripe.js
     const cardEl = elements.getElement(CardNumberElement)
     const { paymentMethod, error: stripeErr } = await stripe.createPaymentMethod({
       type: 'card',
@@ -75,12 +77,16 @@ function AddCardForm() {
       billing_details: { name: cardName },
     })
     if (stripeErr) { setError(stripeErr.message); setSaving(false); return }
-    const { error: dbErr } = await supabase.from('profiles').upsert(
-      { id: user.id, stripe_payment_method_id: paymentMethod.id },
-      { onConflict: 'id' }
-    )
+
+    // Step 2: create / update Stripe customer + attach PM via Edge Function
+    const { data, error: fnErr } = await supabase.functions.invoke('stripe-customer', {
+      body: { payment_method_id: paymentMethod.id },
+    })
     setSaving(false)
-    if (dbErr) { setError(dbErr.message); return }
+    if (fnErr || data?.error) {
+      setError(data?.error || fnErr?.message || 'Σφάλμα αποθήκευσης κάρτας')
+      return
+    }
     navigate('/wallet')
   }
 

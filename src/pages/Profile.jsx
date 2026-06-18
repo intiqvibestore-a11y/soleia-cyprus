@@ -51,7 +51,8 @@ function MenuCard({ items, className = '' }) {
 export default function Profile() {
   const navigate = useNavigate()
   const { user, loading, signOut } = useAuth()
-  const [avatarUrl, setAvatarUrl] = useState(null)
+  const [avatarUrl, setAvatarUrl]         = useState(null)
+  const [walletBalance, setWalletBalance] = useState(0)
 
   useEffect(() => {
     if (!loading && !user) navigate('/', { replace: true })
@@ -59,8 +60,11 @@ export default function Profile() {
 
   useEffect(() => {
     if (loading || !user) return
-    supabase.from('profiles').select('avatar_url').eq('id', user.id).single()
-      .then(({ data }) => { if (data?.avatar_url) setAvatarUrl(data.avatar_url) })
+    supabase.from('profiles').select('avatar_url, wallet_balance').eq('id', user.id).single()
+      .then(({ data }) => {
+        if (data?.avatar_url) setAvatarUrl(data.avatar_url)
+        if (data?.wallet_balance != null) setWalletBalance(Number(data.wallet_balance))
+      })
   }, [user, loading])
 
   if (loading || !user) return null
@@ -139,7 +143,9 @@ export default function Profile() {
         <p className="text-[12px] text-white/75 font-medium mb-1 tracking-wide uppercase">
           Υπόλοιπο πορτοφολιού
         </p>
-        <p className="text-[38px] font-bold text-white leading-none mb-5">0,00 €</p>
+        <p className="text-[38px] font-bold text-white leading-none mb-5">
+          {walletBalance.toLocaleString('el-GR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €
+        </p>
         <button
           onClick={() => navigate('/wallet')}
           className="px-5 py-[9px] rounded-full text-white text-[13px] font-semibold tracking-wide transition-colors hover:bg-white/10 cursor-pointer"
