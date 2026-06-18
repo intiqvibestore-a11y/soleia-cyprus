@@ -1,5 +1,6 @@
 import { Routes, Route, useLocation } from 'react-router-dom'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
+import { motion } from 'framer-motion'
 import Navbar from './components/Navbar'
 import Footer from './components/Footer'
 import Cursor from './components/Cursor'
@@ -21,6 +22,79 @@ import Wallet from './pages/Wallet'
 import WalletAddCard from './pages/WalletAddCard'
 import { SearchProvider, useSearchModal } from './context/SearchContext'
 
+// ── Splash screen ─────────────────────────────────────────────────────────────
+
+function SoleiaLogoSplash({ size = 80 }) {
+  return (
+    <svg width={size} height={size * 0.78} viewBox="0 0 46 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M10 28C10 20.82 15.59 15 23 15C30.41 15 36 20.82 36 28" stroke="#C9A882" strokeWidth="1.8" strokeLinecap="round" fill="none"/>
+      <path d="M7 31.5Q14.5 27.5 23 31.5Q31.5 35.5 39 31.5" stroke="#C9A882" strokeWidth="1.8" strokeLinecap="round" fill="none"/>
+      <line x1="23" y1="12" x2="23" y2="6.5"   stroke="#C9A882" strokeWidth="1.6" strokeLinecap="round"/>
+      <line x1="31.5" y1="14.5" x2="34.5" y2="10.5" stroke="#C9A882" strokeWidth="1.6" strokeLinecap="round"/>
+      <line x1="14.5" y1="14.5" x2="11.5" y2="10.5" stroke="#C9A882" strokeWidth="1.6" strokeLinecap="round"/>
+      <line x1="37.5" y1="20.5" x2="41.5" y2="18"   stroke="#C9A882" strokeWidth="1.6" strokeLinecap="round"/>
+      <line x1="8.5"  y1="20.5" x2="4.5"  y2="18"   stroke="#C9A882" strokeWidth="1.6" strokeLinecap="round"/>
+      <line x1="39.5" y1="26.5" x2="43.5" y2="25.5"  stroke="#C9A882" strokeWidth="1.5" strokeLinecap="round"/>
+      <line x1="6.5"  y1="26.5" x2="2.5"  y2="25.5"  stroke="#C9A882" strokeWidth="1.5" strokeLinecap="round"/>
+    </svg>
+  )
+}
+
+function SplashScreen({ onDone }) {
+  const [phase, setPhase] = useState('in') // 'in' | 'out'
+
+  useEffect(() => {
+    // After fade-in (0.8s) + hold (1.5s) = 2.3s, start spin + fade-out
+    const t1 = setTimeout(() => setPhase('out'), 2300)
+    // After fade-out (0.5s), signal done
+    const t2 = setTimeout(onDone, 2800)
+    return () => { clearTimeout(t1); clearTimeout(t2) }
+  }, [])
+
+  return (
+    <motion.div
+      className="fixed inset-0 z-[9999] flex items-center justify-center"
+      style={{ background: '#F5F0EB' }}
+      animate={{ opacity: phase === 'out' ? 0 : 1 }}
+      transition={{ duration: phase === 'out' ? 0.5 : 0, ease: 'easeInOut' }}
+    >
+      <motion.div
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+        className="flex flex-col items-center"
+        style={{ gap: 14 }}
+      >
+        {/* Logo — spins as screen fades out */}
+        <motion.div
+          animate={phase === 'out' ? { rotate: 360 } : { rotate: 0 }}
+          transition={{ duration: 0.8, ease: 'easeInOut' }}
+        >
+          <SoleiaLogoSplash size={80} />
+        </motion.div>
+
+        {/* Brand name — matches Navbar exactly */}
+        <span
+          className="font-display text-[34px] text-[#1C1917] font-medium"
+          style={{ letterSpacing: '-0.03em' }}
+        >
+          soleia
+        </span>
+
+        {/* Tagline */}
+        <p
+          className="text-[12px] font-medium"
+          style={{ color: '#C9A882', letterSpacing: '0.14em' }}
+        >
+          Discover. Book. Glow.
+        </p>
+      </motion.div>
+    </motion.div>
+  )
+}
+
+// ──────────────────────────────────────────────────────────────────────────────
+
 function ScrollToTop() {
   const { pathname } = useLocation()
   useEffect(() => { window.scrollTo(0, 0) }, [pathname])
@@ -30,6 +104,7 @@ function ScrollToTop() {
 function AppContent() {
   const { open } = useSearchModal()
   const { pathname } = useLocation()
+  const [showSplash, setShowSplash] = useState(pathname !== '/auth/callback')
 
   // OAuth callback runs in a popup — render standalone without nav/footer
   if (pathname === '/auth/callback') {
@@ -38,6 +113,7 @@ function AppContent() {
 
   return (
     <>
+      {showSplash && <SplashScreen onDone={() => setShowSplash(false)} />}
       <Cursor />
       <div className="flex flex-col min-h-screen">
         <ScrollToTop />
