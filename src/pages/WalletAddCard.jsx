@@ -78,13 +78,32 @@ function AddCardForm() {
     })
     if (stripeErr) { setError(stripeErr.message); setSaving(false); return }
 
-    // Step 2: create / update Stripe customer + attach PM via Edge Function
+    // Step 2: attach PM to Stripe customer via Edge Function (needs server-side secret key)
     const { data, error: fnErr } = await supabase.functions.invoke('stripe-customer', {
       body: { payment_method_id: paymentMethod.id },
     })
-    setSaving(false)
-    if (fnErr || data?.error) {
+    if (fnErr || !data || data?.error) {
       setError(data?.error || fnErr?.message || 'Σφάλμα αποθήκευσης κάρτας')
+      setSaving(false)
+      return
+    }
+
+    // Step 3: persist card details to profile directly from client.
+    // Belt-and-suspenders: the edge function also does this, but if its DB write
+    // fails for any reason (e.g. missing columns before migration), this ensures
+    // stripe_payment_method_id, card_brand and card_last4 are always updated.
+    const { error: profileErr } = await supabase
+      .from('profiles')
+      .update({
+        stripe_payment_method_id: paymentMethod.id,
+        card_brand: paymentMethod.card?.brand ?? '',
+        card_last4: paymentMethod.card?.last4 ?? '',
+      })
+      .eq('id', user.id)
+
+    setSaving(false)
+    if (profileErr) {
+      setError('Σφάλμα αποθήκευσης στοιχείων κάρτας. Δοκιμάστε ξανά.')
       return
     }
     navigate('/wallet')
