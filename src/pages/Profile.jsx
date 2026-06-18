@@ -91,8 +91,8 @@ export default function Profile() {
 
   const section1 = [
     { icon: User,          label: 'Προφίλ', onClick: () => navigate('/profile/edit') },
-    { icon: Heart,         label: 'Αγαπημένα' },
-    { icon: MessageCircle, label: 'Μηνύματα' },
+    { icon: Heart,         label: 'Αγαπημένα', onClick: () => navigate('/favorites') },
+    { icon: MessageCircle, label: 'Μηνύματα',  onClick: () => navigate('/messages') },
     { icon: CalendarDays,  label: 'Τα ραντεβού μου' },
     { icon: ClipboardList, label: 'Φόρμες' },
     { icon: Settings2,     label: 'Ρυθμίσεις' },
