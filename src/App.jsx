@@ -70,23 +70,15 @@ function SplashScreen({ onDone }) {
           animate={phase === 'out' ? { rotate: 360 } : { rotate: 0 }}
           transition={{ duration: 0.8, ease: 'easeInOut' }}
         >
-          <SoleiaLogoSplash size={80} />
+          <SoleiaLogoSplash size={160} />
         </motion.div>
-
-        {/* Brand name — matches Navbar exactly */}
-        <span
-          className="font-display text-[34px] text-[#1C1917] font-medium"
-          style={{ letterSpacing: '-0.03em' }}
-        >
-          soleia
-        </span>
 
         {/* Tagline */}
         <p
           className="text-[12px] font-medium"
           style={{ color: '#C9A882', letterSpacing: '0.14em' }}
         >
-          Discover. Book. Glow.
+          DISCOVER. BOOK. GLOW.
         </p>
       </motion.div>
     </motion.div>
