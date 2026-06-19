@@ -24,6 +24,9 @@ import Messages from './pages/Messages'
 import MessagesArchived from './pages/MessagesArchived'
 import Activity from './pages/Activity'
 import BookingDetail from './pages/BookingDetail'
+import MessageChat from './pages/MessageChat'
+import BusinessProfile from './pages/BusinessProfile'
+import RescheduleBooking from './pages/RescheduleBooking'
 import { SearchProvider, useSearchModal } from './context/SearchContext'
 
 // ── Splash screen ─────────────────────────────────────────────────────────────
@@ -134,6 +137,9 @@ function AppContent() {
             <Route path="/messages/archived"  element={<MessagesArchived />} />
             <Route path="/activity"                    element={<Activity />} />
             <Route path="/activity/booking/:id"        element={<BookingDetail />} />
+            <Route path="/messages/chat/:businessId"   element={<MessageChat />} />
+            <Route path="/business/:id"                element={<BusinessProfile />} />
+            <Route path="/booking/reschedule/:id"      element={<RescheduleBooking />} />
           </Routes>
         </main>
         <Footer />
