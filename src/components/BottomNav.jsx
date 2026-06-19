@@ -18,14 +18,14 @@ function FilledPersonIcon({ size = 26, color = '#C9A882' }) {
 const NAV_ITEMS = [
   { icon: Home,     label: 'Home',      path: '/',          exact: true },
   { icon: Search,   label: 'Search',    path: '/services' },
-  { icon: Calendar, label: 'Bookings',  path: '/bookings' },
+  { icon: Calendar, label: 'Activity',  path: '/activity' },
   { icon: Heart,    label: 'Favorites', path: '/favorites' },
   { icon: User,     label: 'Profile',   path: '/profile',   authGate: true },
 ]
 
 function isActive(path, exact, current) {
   if (exact) return current === path
-  if (path === '/bookings') return current.startsWith('/bookings') || current.startsWith('/book/')
+  if (path === '/activity') return current.startsWith('/activity')
   return current.startsWith(path)
 }
 
@@ -37,9 +37,10 @@ export default function BottomNav() {
   const { user } = useAuth()
 
   if (
-    pathname.startsWith('/providers/') ||
-    pathname.startsWith('/book/')      ||
-    pathname === '/search'             ||
+    pathname.startsWith('/providers/')        ||
+    pathname.startsWith('/book/')             ||
+    pathname.startsWith('/activity/booking/') ||
+    pathname === '/search'                    ||
     pathname.startsWith('/profile/')
   ) return null
 
