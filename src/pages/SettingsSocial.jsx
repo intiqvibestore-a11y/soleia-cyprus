@@ -161,12 +161,11 @@ export default function SettingsSocial() {
           .eq('id', user.id)
       }
     } else {
-      // OFF → ON: store which provider then redirect to OAuth
+      // OFF → ON: synchronous redirect — no async, works on iOS Safari
       sessionStorage.setItem('connectingProvider', provider)
-      supabase.auth.signInWithOAuth({
-        provider,
-        options: { redirectTo: window.location.origin + '/settings/social' },
-      })
+      const base = supabase.supabaseUrl
+      const redirectTo = encodeURIComponent(window.location.origin + '/settings/social')
+      window.location.href = `${base}/auth/v1/authorize?provider=${provider}&redirect_to=${redirectTo}`
     }
   }
 
