@@ -157,7 +157,6 @@ export default function SettingsSocial() {
   const navigate = useNavigate()
   const [identities, setIdentities]       = useState([])
   const [loadingData, setLoadingData]     = useState(true)
-  const [linkingProvider, setLinkingProvider] = useState(null)
   const [unlinkPending, setUnlinkPending] = useState(null)
   const [unlinkLoading, setUnlinkLoading] = useState(false)
   const [toast, setToast]                 = useState(null)
@@ -184,9 +183,7 @@ export default function SettingsSocial() {
   const getIdentity = provider => identities.find(i => i.provider === provider)
   const dismissToast = useCallback(() => setToast(null), [])
 
-  const handleToggleClick = async (provider) => {
-    if (linkingProvider) return
-
+  const handleToggleClick = (provider) => {
     if (isLinked(provider)) {
       if (identities.length <= 1) {
         setToast(ONLY_IDENTITY_ERROR)
@@ -194,15 +191,21 @@ export default function SettingsSocial() {
       }
       setUnlinkPending(provider)
     } else {
-      // Immediately start link flow — page will redirect away
-      setLinkingProvider(provider)
-      const { error } = await supabase.auth.linkWithOAuth({
+      // Fire synchronously in the same user-interaction tick so iOS Safari allows the redirect
+      supabase.auth.linkWithOAuth({
         provider,
-        options: { redirectTo: window.location.origin + '/settings/social' },
+        options: {
+          redirectTo: window.location.origin + '/settings/social',
+          skipBrowserRedirect: false,
+        },
+      }).then(({ data, error }) => {
+        if (data?.url) {
+          window.location.href = data.url
+        }
+        if (error) {
+          setToast('Παρουσιάστηκε σφάλμα. Δοκιμάστε ξανά.')
+        }
       })
-      // Only reached if redirect didn't fire (error / blocked)
-      if (error) setToast('Παρουσιάστηκε σφάλμα. Δοκιμάστε ξανά.')
-      setLinkingProvider(null)
     }
   }
 
@@ -259,7 +262,7 @@ export default function SettingsSocial() {
               name="Google"
               linked={isLinked('google')}
               onToggle={() => handleToggleClick('google')}
-              disabled={linkingProvider === 'google'}
+              disabled={false}
               first
             />
             <ProviderRow
@@ -267,14 +270,14 @@ export default function SettingsSocial() {
               name="Facebook"
               linked={isLinked('facebook')}
               onToggle={() => handleToggleClick('facebook')}
-              disabled={linkingProvider === 'facebook'}
+              disabled={false}
             />
             <ProviderRow
               logo={<AppleLogo />}
               name="Apple"
               linked={isLinked('apple')}
               onToggle={() => handleToggleClick('apple')}
-              disabled={linkingProvider === 'apple'}
+              disabled={false}
             />
           </>
         )}
