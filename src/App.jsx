@@ -28,6 +28,9 @@ import MessageChat from './pages/MessageChat'
 import BusinessProfile from './pages/BusinessProfile'
 import RescheduleBooking from './pages/RescheduleBooking'
 import Forms from './pages/Forms'
+import Settings from './pages/Settings'
+import SettingsNotifications from './pages/SettingsNotifications'
+import SettingsChangePassword from './pages/SettingsChangePassword'
 import { SearchProvider, useSearchModal } from './context/SearchContext'
 
 // ── Splash screen ─────────────────────────────────────────────────────────────
@@ -142,6 +145,9 @@ function AppContent() {
             <Route path="/business/:id"                element={<BusinessProfile />} />
             <Route path="/booking/reschedule/:id"      element={<RescheduleBooking />} />
             <Route path="/forms"                       element={<Forms />} />
+            <Route path="/settings"                    element={<Settings />} />
+            <Route path="/settings/notifications"      element={<SettingsNotifications />} />
+            <Route path="/settings/change-password"    element={<SettingsChangePassword />} />
           </Routes>
         </main>
         <Footer />

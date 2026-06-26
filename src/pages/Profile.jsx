@@ -95,7 +95,7 @@ export default function Profile() {
     { icon: MessageCircle, label: 'Μηνύματα',  onClick: () => navigate('/messages') },
     { icon: CalendarDays,  label: 'Τα ραντεβού μου', onClick: () => navigate('/activity') },
     { icon: ClipboardList, label: 'Φόρμες',          onClick: () => navigate('/forms') },
-    { icon: Settings2,     label: 'Ρυθμίσεις' },
+    { icon: Settings2,     label: 'Ρυθμίσεις', onClick: () => navigate('/settings') },
   ]
 
   const section2 = [
