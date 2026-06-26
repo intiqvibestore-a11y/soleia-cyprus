@@ -56,6 +56,8 @@ export default function ProfileEditDetails() {
             setCountryIdx(idx)
             setPhoneNumber(data.phone.slice(COUNTRIES[idx].code.length))
           }
+          // Prefer profiles.email; fall back to auth user email
+          if (data.email)        setEmail(data.email)
           if (data.birth_day)    setBirthDay(String(data.birth_day))
           if (data.birth_month)  setBirthMonth(String(data.birth_month))
           if (data.birth_year)   setBirthYear(String(data.birth_year))
@@ -75,6 +77,7 @@ export default function ProfileEditDetails() {
       first_name:  firstName  || null,
       last_name:   lastName   || null,
       phone:       fullPhone  || null,
+      email:       email      || null,
       birth_day:   birthDay   ? parseInt(birthDay)   : null,
       birth_month: birthMonth ? parseInt(birthMonth) : null,
       birth_year:  birthYear  ? parseInt(birthYear)  : null,
