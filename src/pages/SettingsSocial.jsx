@@ -1,11 +1,10 @@
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ArrowLeft, AlertCircle } from 'lucide-react'
 import { supabase } from '../utils/supabase/client'
 
 const ONLY_IDENTITY_ERROR = 'Δεν μπορείτε να αποσυνδέσετε τον μοναδικό τρόπο σύνδεσής σας.'
 const PROVIDER_NAMES = { google: 'Google', facebook: 'Facebook', apple: 'Apple' }
-const PROVIDERS = ['google', 'facebook', 'apple']
 
 function Toast({ message, onDismiss }) {
   useEffect(() => {
@@ -20,6 +19,56 @@ function Toast({ message, onDismiss }) {
     >
       <AlertCircle className="w-5 h-5 shrink-0" style={{ color: '#EF4444' }} strokeWidth={2} />
       <span className="text-[13px] font-medium text-white leading-snug">{message}</span>
+    </div>
+  )
+}
+
+function LinkSheet({ provider, linkUrl, onClose }) {
+  const name = PROVIDER_NAMES[provider] || provider
+  return (
+    <div
+      className="fixed inset-0 z-[400] flex items-end"
+      style={{ background: 'rgba(28,25,23,0.45)' }}
+      onClick={onClose}
+    >
+      <div
+        className="w-full bg-[#FDFAF7] rounded-t-[28px] px-6 pt-5 pb-10"
+        onClick={e => e.stopPropagation()}
+      >
+        <div className="w-10 h-1 rounded-full mx-auto mb-6" style={{ background: '#D1CAC1' }} />
+        <h2 className="text-[19px] font-bold mb-7" style={{ color: '#3D2B1F' }}>
+          Σύνδεση με {name}
+        </h2>
+
+        {/* Render <a> only after URL is ready — native link iOS Safari can always follow */}
+        {linkUrl ? (
+          <a
+            href={linkUrl}
+            className="block w-full py-[14px] rounded-full font-semibold text-[15px] text-center"
+            style={{ background: '#1C1917', color: 'white', textDecoration: 'none' }}
+          >
+            Σύνδεση με {name}
+          </a>
+        ) : (
+          <div
+            className="w-full py-[14px] rounded-full flex items-center justify-center"
+            style={{ background: '#1C1917' }}
+          >
+            <div
+              className="w-5 h-5 rounded-full border-2 animate-spin"
+              style={{ borderColor: 'rgba(255,255,255,0.25)', borderTopColor: 'white' }}
+            />
+          </div>
+        )}
+
+        <button
+          onClick={onClose}
+          className="w-full py-[14px] rounded-full font-semibold text-[15px] mt-3 cursor-pointer"
+          style={{ background: 'transparent', border: '1.5px solid #D1CAC1', color: '#3D2B1F' }}
+        >
+          Ακύρωση
+        </button>
+      </div>
     </div>
   )
 }
@@ -61,13 +110,13 @@ function UnlinkSheet({ provider, onCancel, onConfirm, loading }) {
   )
 }
 
-function Toggle({ value, onChange, disabled = false }) {
+function Toggle({ value, onChange }) {
   return (
     <button
-      onClick={disabled ? undefined : onChange}
+      onClick={onChange}
       role="switch"
       aria-checked={value}
-      className="shrink-0"
+      className="shrink-0 cursor-pointer"
       style={{
         position: 'relative',
         width: 44,
@@ -77,8 +126,6 @@ function Toggle({ value, onChange, disabled = false }) {
         border: 'none',
         padding: 0,
         transition: 'background 0.2s',
-        opacity: disabled ? 0.55 : 1,
-        cursor: disabled ? 'not-allowed' : 'pointer',
       }}
     >
       <span
@@ -134,17 +181,21 @@ function AppleLogo() {
   )
 }
 
-function ProviderRow({ logo, name, linked, onToggle, first = false }) {
+const LOGOS = { google: <GoogleLogo />, facebook: <FacebookLogo />, apple: <AppleLogo /> }
+
+function ProviderRow({ provider, linked, onToggle, first = false }) {
   return (
     <div
       className="flex items-center gap-4 px-5 py-4"
       style={{ borderTop: first ? 'none' : '1px solid #F0EBE5' }}
     >
       <div className="shrink-0 w-9 h-9 flex items-center justify-center">
-        {logo}
+        {LOGOS[provider]}
       </div>
       <div className="flex-1 min-w-0">
-        <p className="text-[16px] font-semibold leading-tight" style={{ color: '#1C1917' }}>{name}</p>
+        <p className="text-[16px] font-semibold leading-tight" style={{ color: '#1C1917' }}>
+          {PROVIDER_NAMES[provider]}
+        </p>
         <p className="text-[13px] mt-0.5" style={{ color: '#A8A29E' }}>
           {linked ? 'Συνδεδεμένο' : 'Μη συνδεδεμένο'}
         </p>
@@ -158,61 +209,21 @@ export default function SettingsSocial() {
   const navigate = useNavigate()
   const [identities, setIdentities]       = useState([])
   const [loadingData, setLoadingData]     = useState(true)
-  const [oauthUrls, setOauthUrls]         = useState({ google: null, facebook: null, apple: null })
-  const [unlinkPending, setUnlinkPending] = useState(null)
+  const [linkSheet, setLinkSheet]         = useState(null)   // provider string | null
+  const [linkUrl, setLinkUrl]             = useState(null)   // fetched OAuth URL for link sheet
+  const [unlinkPending, setUnlinkPending] = useState(null)   // provider string | null
   const [unlinkLoading, setUnlinkLoading] = useState(false)
   const [toast, setToast]                 = useState(null)
-  const [fatalError, setFatalError]       = useState(false)
-
-  // One hidden <a> per provider — clicking them navigates iOS Safari reliably
-  const googleRef   = useRef(null)
-  const facebookRef = useRef(null)
-  const appleRef    = useRef(null)
-  const anchorRefs  = { google: googleRef, facebook: facebookRef, apple: appleRef }
 
   const fetchIdentities = useCallback(async () => {
-    try {
-      const { data, error } = await supabase.auth.getUserIdentities()
-      if (error) throw error
-      setIdentities(data?.identities || [])
-    } catch (err) {
-      console.error('Failed to fetch identities:', err)
-      setFatalError(true)
-    } finally {
-      setLoadingData(false)
-    }
+    const { data } = await supabase.auth.getUserIdentities()
+    setIdentities(data?.identities || [])
+    setLoadingData(false)
   }, [])
 
+  // On mount: load real identity state + subscribe to auth changes (handles OAuth return)
   useEffect(() => {
     fetchIdentities()
-
-    // Pre-fetch all 3 OAuth URLs on mount so toggle clicks stay fully synchronous
-    const prefetchOAuthUrls = async () => {
-      try {
-        const results = await Promise.all(
-          PROVIDERS.map(provider =>
-            supabase.auth.linkWithOAuth({
-              provider,
-              options: {
-                redirectTo: window.location.origin + '/settings/social',
-                skipBrowserRedirect: true,
-              },
-            })
-          )
-        )
-        const urls = {}
-        PROVIDERS.forEach((p, i) => {
-          if (results[i]?.data?.url) urls[p] = results[i].data.url
-        })
-        setOauthUrls(urls)
-      } catch (err) {
-        console.error('OAuth URL pre-fetch failed — will fall back on tap:', err)
-        // Non-fatal: handleToggleClick fallback covers this case
-      }
-    }
-    prefetchOAuthUrls()
-
-    // Re-fetch identities on return from OAuth redirect
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
       if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED') {
         fetchIdentities()
@@ -220,6 +231,22 @@ export default function SettingsSocial() {
     })
     return () => subscription.unsubscribe()
   }, [fetchIdentities])
+
+  // When link sheet opens: fetch the OAuth URL for that provider
+  useEffect(() => {
+    if (!linkSheet) { setLinkUrl(null); return }
+    supabase.auth.linkWithOAuth({
+      provider: linkSheet,
+      options: {
+        redirectTo: window.location.origin + '/settings/social',
+        skipBrowserRedirect: true,
+      },
+    }).then(({ data }) => {
+      setLinkUrl(data?.url || null)
+    }).catch(() => {
+      setLinkUrl(null)
+    })
+  }, [linkSheet])
 
   const isLinked    = provider => identities.some(i => i.provider === provider)
   const getIdentity = provider => identities.find(i => i.provider === provider)
@@ -233,18 +260,7 @@ export default function SettingsSocial() {
       }
       setUnlinkPending(provider)
     } else {
-      const ref = anchorRefs[provider]?.current
-      const url = oauthUrls[provider]
-      if (ref && url) {
-        // Primary: synchronous anchor click — iOS Safari always allows native anchor navigation
-        ref.click()
-      } else {
-        // Fallback: direct linkWithOAuth without skipBrowserRedirect (Supabase handles redirect)
-        supabase.auth.linkWithOAuth({
-          provider,
-          options: { redirectTo: window.location.origin + '/settings/social' },
-        })
-      }
+      setLinkSheet(provider)
     }
   }
 
@@ -262,29 +278,8 @@ export default function SettingsSocial() {
     setUnlinkPending(null)
   }
 
-  if (fatalError) {
-    return (
-      <div className="min-h-screen bg-[#F5F0EB] pt-[62px] flex flex-col items-center justify-center px-8 text-center">
-        <p className="text-[17px] font-semibold mb-2" style={{ color: '#3D2B1F' }}>Σφάλμα φόρτωσης</p>
-        <p className="text-[14px]" style={{ color: '#A8A29E' }}>Παρακαλώ ελέγξτε τη σύνδεσή σας και δοκιμάστε ξανά.</p>
-        <button
-          onClick={() => { setFatalError(false); setLoadingData(true); fetchIdentities() }}
-          className="mt-6 px-6 py-3 rounded-full text-[14px] font-semibold cursor-pointer"
-          style={{ background: '#1C1917', color: 'white', border: 'none' }}
-        >
-          Δοκιμάστε ξανά
-        </button>
-      </div>
-    )
-  }
-
   return (
     <div className="min-h-screen bg-[#F5F0EB] pt-[62px] pb-[160px]">
-
-      {/* Hidden OAuth anchors — pre-loaded hrefs, clicked synchronously on toggle tap */}
-      <a ref={googleRef}   href={oauthUrls.google   || undefined} style={{ display: 'none' }} aria-hidden="true" tabIndex={-1} />
-      <a ref={facebookRef} href={oauthUrls.facebook || undefined} style={{ display: 'none' }} aria-hidden="true" tabIndex={-1} />
-      <a ref={appleRef}    href={oauthUrls.apple    || undefined} style={{ display: 'none' }} aria-hidden="true" tabIndex={-1} />
 
       {toast && <Toast message={toast} onDismiss={dismissToast} />}
 
@@ -298,7 +293,10 @@ export default function SettingsSocial() {
         >
           <ArrowLeft className="w-5 h-5" style={{ color: '#1C1917' }} strokeWidth={2} />
         </button>
-        <h1 className="text-[24px] font-bold leading-tight" style={{ color: '#3D2B1F', fontFamily: 'Georgia, serif' }}>
+        <h1
+          className="text-[24px] font-bold leading-tight"
+          style={{ color: '#3D2B1F', fontFamily: 'Georgia, serif' }}
+        >
           Στοιχεία σύνδεσης στα socials
         </h1>
       </div>
@@ -317,34 +315,15 @@ export default function SettingsSocial() {
           </div>
         ) : (
           <>
-            <ProviderRow
-              logo={<GoogleLogo />}
-              name="Google"
-              linked={isLinked('google')}
-              onToggle={() => handleToggleClick('google')}
-              first
-            />
-            <ProviderRow
-              logo={<FacebookLogo />}
-              name="Facebook"
-              linked={isLinked('facebook')}
-              onToggle={() => handleToggleClick('facebook')}
-            />
-            <ProviderRow
-              logo={<AppleLogo />}
-              name="Apple"
-              linked={isLinked('apple')}
-              onToggle={() => handleToggleClick('apple')}
-            />
+            <ProviderRow provider="google"   linked={isLinked('google')}   onToggle={() => handleToggleClick('google')}   first />
+            <ProviderRow provider="facebook" linked={isLinked('facebook')} onToggle={() => handleToggleClick('facebook')} />
+            <ProviderRow provider="apple"    linked={isLinked('apple')}    onToggle={() => handleToggleClick('apple')}    />
           </>
         )}
       </div>
 
       {/* Fixed "Έτοιμο" button — above BottomNav */}
-      <div
-        className="fixed left-0 right-0 z-[200] px-5"
-        style={{ bottom: '68px' }}
-      >
+      <div className="fixed left-0 right-0 z-[200] px-5" style={{ bottom: '68px' }}>
         <button
           onClick={() => navigate('/settings')}
           className="w-full py-[15px] rounded-full font-semibold text-[16px] cursor-pointer"
@@ -354,7 +333,16 @@ export default function SettingsSocial() {
         </button>
       </div>
 
-      {/* Unlink confirmation sheet */}
+      {/* Link sheet — opens when toggling OFF→ON */}
+      {linkSheet && (
+        <LinkSheet
+          provider={linkSheet}
+          linkUrl={linkUrl}
+          onClose={() => setLinkSheet(null)}
+        />
+      )}
+
+      {/* Unlink confirmation sheet — opens when toggling ON→OFF */}
       {unlinkPending && (
         <UnlinkSheet
           provider={unlinkPending}
