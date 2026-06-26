@@ -128,20 +128,33 @@ export default function SettingsSocial() {
     const connectingProvider = sessionStorage.getItem('connectingProvider')
 
     if (connectingProvider) {
-      // Returned from OAuth — verify session and mark provider as connected
+      // Always clear sessionStorage regardless of outcome
       sessionStorage.removeItem('connectingProvider')
+
       Promise.all([
         supabase.auth.getSession(),
         supabase.auth.getUser(),
       ]).then(([{ data: { session } }, { data: { user: currentUser } }]) => {
         const uid = currentUser?.id || session?.user?.id
-        if (uid) {
+
+        // Only mark connected if the session's provider actually matches —
+        // a cancelled OAuth leaves the original session unchanged (e.g. provider: 'email')
+        const sessionProvider = session?.user?.app_metadata?.provider
+        const identities = session?.user?.identities || []
+        const providerMatches =
+          sessionProvider === connectingProvider ||
+          identities.some(i => i.provider === connectingProvider)
+
+        if (uid && providerMatches) {
+          // OAuth completed successfully — persist and refresh toggles
           supabase.from('profiles')
             .update({ [`connected_${connectingProvider}`]: true })
             .eq('id', uid)
             .then(() => loadToggles(uid))
         } else {
-          if (user?.id) loadToggles(user.id)
+          // Cancelled or failed — load current state without updating
+          const loadId = uid || user?.id
+          if (loadId) loadToggles(loadId)
           else setLoadingData(false)
         }
       })
