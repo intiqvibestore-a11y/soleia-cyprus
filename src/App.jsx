@@ -32,6 +32,9 @@ import Settings from './pages/Settings'
 import SettingsNotifications from './pages/SettingsNotifications'
 import SettingsChangePassword from './pages/SettingsChangePassword'
 import SettingsSocial from './pages/SettingsSocial'
+import Privacy from './pages/Privacy'
+import Terms from './pages/Terms'
+import TermsServices from './pages/TermsServices'
 import { SearchProvider, useSearchModal } from './context/SearchContext'
 
 // ── Splash screen ─────────────────────────────────────────────────────────────
@@ -150,11 +153,14 @@ function AppContent() {
             <Route path="/settings/notifications"      element={<SettingsNotifications />} />
             <Route path="/settings/change-password"    element={<SettingsChangePassword />} />
             <Route path="/settings/social"             element={<SettingsSocial />} />
+            <Route path="/privacy"                     element={<Privacy />} />
+            <Route path="/terms"                       element={<Terms />} />
+            <Route path="/terms/services"              element={<TermsServices />} />
           </Routes>
         </main>
         <Footer />
       </div>
-      <BottomNav />
+      {!['/privacy', '/terms', '/terms/services'].includes(pathname) && <BottomNav />}
       {open && <SearchModal />}
     </>
   )
