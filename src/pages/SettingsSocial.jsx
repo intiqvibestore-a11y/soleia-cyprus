@@ -191,7 +191,7 @@ export default function SettingsSocial() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F5F0EB] pt-[62px] pb-32">
+    <div className="min-h-screen bg-[#F5F0EB] pt-[62px]">
 
       {/* Header */}
       <div className="px-5 pt-4 pb-3">
@@ -232,12 +232,12 @@ export default function SettingsSocial() {
         )}
       </div>
 
-      {/* Fixed "Έτοιμο" button — above BottomNav */}
-      <div className="fixed bottom-20 left-0 right-0 z-[200] px-5">
+      {/* Inline "Έτοιμο" button — scrolls with page */}
+      <div className="mt-6 mb-8 flex justify-center">
         <button
           onClick={handleDone}
           disabled={saving}
-          className="w-full py-[15px] rounded-full font-semibold text-[16px] cursor-pointer"
+          className="w-3/4 py-[15px] rounded-full font-semibold text-[16px] cursor-pointer"
           style={{ background: '#1C1917', color: 'white', border: 'none', opacity: saving ? 0.7 : 1 }}
         >
           {saving ? 'Αποθήκευση...' : 'Έτοιμο'}
