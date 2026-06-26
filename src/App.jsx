@@ -27,6 +27,7 @@ import BookingDetail from './pages/BookingDetail'
 import MessageChat from './pages/MessageChat'
 import BusinessProfile from './pages/BusinessProfile'
 import RescheduleBooking from './pages/RescheduleBooking'
+import Forms from './pages/Forms'
 import { SearchProvider, useSearchModal } from './context/SearchContext'
 
 // ── Splash screen ─────────────────────────────────────────────────────────────
@@ -140,6 +141,7 @@ function AppContent() {
             <Route path="/messages/chat/:businessId"   element={<MessageChat />} />
             <Route path="/business/:id"                element={<BusinessProfile />} />
             <Route path="/booking/reschedule/:id"      element={<RescheduleBooking />} />
+            <Route path="/forms"                       element={<Forms />} />
           </Routes>
         </main>
         <Footer />
