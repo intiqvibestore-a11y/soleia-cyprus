@@ -1,10 +1,11 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ArrowLeft, AlertCircle } from 'lucide-react'
 import { supabase } from '../utils/supabase/client'
 
 const ONLY_IDENTITY_ERROR = 'Δεν μπορείτε να αποσυνδέσετε τον μοναδικό τρόπο σύνδεσής σας.'
 const PROVIDER_NAMES = { google: 'Google', facebook: 'Facebook', apple: 'Apple' }
+const PROVIDERS = ['google', 'facebook', 'apple']
 
 function Toast({ message, onDismiss }) {
   useEffect(() => {
@@ -133,7 +134,7 @@ function AppleLogo() {
   )
 }
 
-function ProviderRow({ logo, name, linked, onToggle, disabled, first = false }) {
+function ProviderRow({ logo, name, linked, onToggle, first = false }) {
   return (
     <div
       className="flex items-center gap-4 px-5 py-4"
@@ -148,7 +149,7 @@ function ProviderRow({ logo, name, linked, onToggle, disabled, first = false }) 
           {linked ? 'Συνδεδεμένο' : 'Μη συνδεδεμένο'}
         </p>
       </div>
-      <Toggle value={linked} onChange={onToggle} disabled={disabled} />
+      <Toggle value={linked} onChange={onToggle} />
     </div>
   )
 }
@@ -157,9 +158,16 @@ export default function SettingsSocial() {
   const navigate = useNavigate()
   const [identities, setIdentities]       = useState([])
   const [loadingData, setLoadingData]     = useState(true)
+  const [oauthUrls, setOauthUrls]         = useState({ google: null, facebook: null, apple: null })
   const [unlinkPending, setUnlinkPending] = useState(null)
   const [unlinkLoading, setUnlinkLoading] = useState(false)
   const [toast, setToast]                 = useState(null)
+
+  // One hidden <a> per provider — clicking them navigates iOS Safari reliably
+  const googleRef   = useRef(null)
+  const facebookRef = useRef(null)
+  const appleRef    = useRef(null)
+  const anchorRefs  = { google: googleRef, facebook: facebookRef, apple: appleRef }
 
   const fetchIdentities = useCallback(async () => {
     const { data } = await supabase.auth.getUserIdentities()
@@ -170,7 +178,26 @@ export default function SettingsSocial() {
   useEffect(() => {
     fetchIdentities()
 
-    // Re-fetch on return from OAuth redirect or any auth state change
+    // Pre-fetch all 3 OAuth URLs on mount so toggle clicks stay fully synchronous
+    Promise.all(
+      PROVIDERS.map(provider =>
+        supabase.auth.linkWithOAuth({
+          provider,
+          options: {
+            redirectTo: window.location.origin + '/settings/social',
+            skipBrowserRedirect: true,
+          },
+        })
+      )
+    ).then(results => {
+      const urls = {}
+      PROVIDERS.forEach((p, i) => {
+        if (results[i].data?.url) urls[p] = results[i].data.url
+      })
+      setOauthUrls(urls)
+    })
+
+    // Re-fetch identities on return from OAuth redirect
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
       if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED') {
         fetchIdentities()
@@ -179,11 +206,12 @@ export default function SettingsSocial() {
     return () => subscription.unsubscribe()
   }, [fetchIdentities])
 
-  const isLinked   = provider => identities.some(i => i.provider === provider)
+  const isLinked    = provider => identities.some(i => i.provider === provider)
   const getIdentity = provider => identities.find(i => i.provider === provider)
   const dismissToast = useCallback(() => setToast(null), [])
 
-  const handleToggleClick = async (provider) => {
+  // Fully synchronous — no async, no await, no Promise in this handler
+  const handleToggleClick = (provider) => {
     if (isLinked(provider)) {
       if (identities.length <= 1) {
         setToast(ONLY_IDENTITY_ERROR)
@@ -191,20 +219,7 @@ export default function SettingsSocial() {
       }
       setUnlinkPending(provider)
     } else {
-      // skipBrowserRedirect: true → get URL back without auto-redirect,
-      // then set window.location.href ourselves (works on iOS Safari; window.open would not)
-      const { data, error } = await supabase.auth.linkWithOAuth({
-        provider,
-        options: {
-          redirectTo: window.location.origin + '/settings/social',
-          skipBrowserRedirect: true,
-        },
-      })
-      if (data?.url) {
-        window.location.href = data.url
-      } else if (error) {
-        setToast('Παρουσιάστηκε σφάλμα. Δοκιμάστε ξανά.')
-      }
+      anchorRefs[provider].current?.click()
     }
   }
 
@@ -224,6 +239,11 @@ export default function SettingsSocial() {
 
   return (
     <div className="min-h-screen bg-[#F5F0EB] pt-[62px] pb-[160px]">
+
+      {/* Hidden OAuth anchors — pre-loaded hrefs, clicked synchronously on toggle tap */}
+      <a ref={googleRef}   href={oauthUrls.google   || undefined} style={{ display: 'none' }} aria-hidden="true" tabIndex={-1} />
+      <a ref={facebookRef} href={oauthUrls.facebook || undefined} style={{ display: 'none' }} aria-hidden="true" tabIndex={-1} />
+      <a ref={appleRef}    href={oauthUrls.apple    || undefined} style={{ display: 'none' }} aria-hidden="true" tabIndex={-1} />
 
       {toast && <Toast message={toast} onDismiss={dismissToast} />}
 
@@ -261,7 +281,6 @@ export default function SettingsSocial() {
               name="Google"
               linked={isLinked('google')}
               onToggle={() => handleToggleClick('google')}
-              disabled={false}
               first
             />
             <ProviderRow
@@ -269,14 +288,12 @@ export default function SettingsSocial() {
               name="Facebook"
               linked={isLinked('facebook')}
               onToggle={() => handleToggleClick('facebook')}
-              disabled={false}
             />
             <ProviderRow
               logo={<AppleLogo />}
               name="Apple"
               linked={isLinked('apple')}
               onToggle={() => handleToggleClick('apple')}
-              disabled={false}
             />
           </>
         )}
