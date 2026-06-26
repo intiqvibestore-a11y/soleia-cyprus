@@ -191,7 +191,7 @@ export default function SettingsSocial() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F5F0EB] pt-[62px] pb-[160px]">
+    <div className="min-h-screen bg-[#F5F0EB] pt-[62px] pb-32">
 
       {/* Header */}
       <div className="px-5 pt-4 pb-3">
@@ -233,7 +233,7 @@ export default function SettingsSocial() {
       </div>
 
       {/* Fixed "Έτοιμο" button — above BottomNav */}
-      <div className="fixed left-0 right-0 z-[200] px-5" style={{ bottom: '68px' }}>
+      <div className="fixed bottom-20 left-0 right-0 z-[200] px-5">
         <button
           onClick={handleDone}
           disabled={saving}
