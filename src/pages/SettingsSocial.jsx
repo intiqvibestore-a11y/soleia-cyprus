@@ -1,7 +1,26 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft, AlertCircle } from 'lucide-react'
 import { supabase } from '../utils/supabase/client'
+
+const ONLY_IDENTITY_ERROR = 'Δεν μπορείτε να αποσυνδέσετε τον μοναδικό τρόπο σύνδεσής σας.'
+
+function Toast({ message, onDismiss }) {
+  useEffect(() => {
+    const t = setTimeout(onDismiss, 3500)
+    return () => clearTimeout(t)
+  }, [onDismiss])
+
+  return (
+    <div
+      className="fixed top-[78px] left-4 right-4 z-[600] flex items-center gap-3 px-4 py-3 rounded-2xl"
+      style={{ background: '#1C1917', boxShadow: '0 4px 20px rgba(0,0,0,0.25)' }}
+    >
+      <AlertCircle className="w-5 h-5 shrink-0" style={{ color: '#EF4444' }} strokeWidth={2} />
+      <span className="text-[13px] font-medium text-white leading-snug">{message}</span>
+    </div>
+  )
+}
 
 function Toggle({ value, onChange, disabled = false }) {
   return (
@@ -67,9 +86,9 @@ function FacebookLogo() {
 
 function AppleLogo() {
   return (
-    <svg width="36" height="36" viewBox="0 0 24 24" fill="none">
+    <svg width="36" height="36" viewBox="0 0 512 512" fill="none">
       <path
-        d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.7 9.05 7.42c1.29.07 2.18.74 2.97.76 1.15-.24 2.25-.93 3.47-.82 1.47.14 2.57.73 3.28 1.9-3.22 1.93-2.46 5.87.28 7.02zm-3.78-13.5c-.06 1.92-1.52 3.42-3.32 3.3-.27-1.89 1.68-3.54 3.32-3.3z"
+        d="M318.7 268.7c-.2-36.7 16.4-64.4 50-84.8-18.8-26.9-47.2-41.7-84.7-44.6-35.5-2.8-74.3 20.7-88.5 20.7-15 0-49.4-19.7-76.4-19.7C63.3 141.2 4 184.8 4 273.5q0 39.3 14.4 81.2c12.8 36.7 59 126.7 107.2 125.2 25.2-.6 43-17.9 75.8-17.9 31.8 0 48.3 17.9 76.4 17.9 48.4-.7 90.7-82.5 102.6-119.3-65.2-30.7-61.7-90-61.7-91.9zm-56.6-164.2c27.3-32.4 24.8-61.9 24-72.5-24.1 1.4-52 16.4-67.9 34.9-17.5 19.8-27.8 44.3-25.6 71.9 26.1 2 49.9-11.4 69.5-34.3z"
         fill="#1C1917"
       />
     </svg>
@@ -101,6 +120,7 @@ export default function SettingsSocial() {
   const [identities, setIdentities] = useState([])
   const [loadingData, setLoadingData] = useState(true)
   const [toggling, setToggling] = useState({})
+  const [toast, setToast] = useState(null)
 
   useEffect(() => {
     supabase.auth.getUserIdentities().then(({ data }) => {
@@ -112,31 +132,46 @@ export default function SettingsSocial() {
   const isLinked = provider => identities.some(i => i.provider === provider)
   const getIdentity = provider => identities.find(i => i.provider === provider)
 
+  const dismissToast = useCallback(() => setToast(null), [])
+
   const handleToggle = async (provider) => {
     if (toggling[provider]) return
-    setToggling(t => ({ ...t, [provider]: true }))
 
     if (isLinked(provider)) {
+      // Guard: can't unlink the only identity
+      if (identities.length <= 1) {
+        setToast(ONLY_IDENTITY_ERROR)
+        return
+      }
+
+      setToggling(t => ({ ...t, [provider]: true }))
       const identity = getIdentity(provider)
       const { error } = await supabase.auth.unlinkIdentity(identity)
-      if (!error) {
+
+      if (error) {
+        setToast(ONLY_IDENTITY_ERROR)
+      } else {
         setIdentities(prev => prev.filter(i => i.provider !== provider))
       }
       setToggling(t => ({ ...t, [provider]: false }))
     } else {
-      await supabase.auth.signInWithOAuth({
+      // Link new provider — redirects away; do NOT flip toggle optimistically
+      setToggling(t => ({ ...t, [provider]: true }))
+      await supabase.auth.linkWithOAuth({
         provider,
         options: {
           redirectTo: window.location.origin + '/settings/social',
-          ...(provider === 'google' ? { scopes: 'email' } : {}),
         },
       })
-      // page navigates away; no need to reset toggling state
+      // If redirect did not happen (error / popup blocked), reset spinner
+      setToggling(t => ({ ...t, [provider]: false }))
     }
   }
 
   return (
     <div className="min-h-screen bg-[#F5F0EB] pt-[62px] pb-[160px]">
+
+      {toast && <Toast message={toast} onDismiss={dismissToast} />}
 
       {/* Header */}
       <div className="px-5 pt-4 pb-3">
@@ -193,7 +228,7 @@ export default function SettingsSocial() {
         )}
       </div>
 
-      {/* Fixed "Έτοιμο" button — sits just above the BottomNav */}
+      {/* Fixed "Έτοιμο" button — above BottomNav */}
       <div
         className="fixed left-0 right-0 z-[200] px-5"
         style={{ bottom: '68px' }}
