@@ -31,6 +31,7 @@ import Forms from './pages/Forms'
 import Settings from './pages/Settings'
 import SettingsNotifications from './pages/SettingsNotifications'
 import SettingsChangePassword from './pages/SettingsChangePassword'
+import SettingsSocial from './pages/SettingsSocial'
 import { SearchProvider, useSearchModal } from './context/SearchContext'
 
 // ── Splash screen ─────────────────────────────────────────────────────────────
@@ -148,6 +149,7 @@ function AppContent() {
             <Route path="/settings"                    element={<Settings />} />
             <Route path="/settings/notifications"      element={<SettingsNotifications />} />
             <Route path="/settings/change-password"    element={<SettingsChangePassword />} />
+            <Route path="/settings/social"             element={<SettingsSocial />} />
           </Routes>
         </main>
         <Footer />

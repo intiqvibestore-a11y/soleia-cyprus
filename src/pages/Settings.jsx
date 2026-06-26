@@ -112,7 +112,7 @@ export default function Settings() {
         className="mx-5 bg-white rounded-2xl overflow-hidden"
         style={{ boxShadow: '0 1px 8px rgba(28,25,23,0.07)' }}
       >
-        <SettingRow icon={Share2}      label="Στοιχεία σύνδεσης στα socials" onClick={() => {}}                                    first />
+        <SettingRow icon={Share2}      label="Στοιχεία σύνδεσης στα socials" onClick={() => navigate('/settings/social')}          first />
         <SettingRow icon={Bell}        label="Ειδοποιήσεις"                  onClick={() => navigate('/settings/notifications')} />
         <SettingRow icon={Globe}       label="Γλώσσα"                        onClick={openLanguageSettings} />
         <SettingRow icon={KeyRound}    label="Αλλαγή κωδικού πρόσβασης"     onClick={() => navigate('/settings/change-password')} />
