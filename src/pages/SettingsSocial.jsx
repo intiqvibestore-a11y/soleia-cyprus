@@ -162,6 +162,7 @@ export default function SettingsSocial() {
   const [unlinkPending, setUnlinkPending] = useState(null)
   const [unlinkLoading, setUnlinkLoading] = useState(false)
   const [toast, setToast]                 = useState(null)
+  const [fatalError, setFatalError]       = useState(false)
 
   // One hidden <a> per provider — clicking them navigates iOS Safari reliably
   const googleRef   = useRef(null)
@@ -170,32 +171,46 @@ export default function SettingsSocial() {
   const anchorRefs  = { google: googleRef, facebook: facebookRef, apple: appleRef }
 
   const fetchIdentities = useCallback(async () => {
-    const { data } = await supabase.auth.getUserIdentities()
-    setIdentities(data?.identities || [])
-    setLoadingData(false)
+    try {
+      const { data, error } = await supabase.auth.getUserIdentities()
+      if (error) throw error
+      setIdentities(data?.identities || [])
+    } catch (err) {
+      console.error('Failed to fetch identities:', err)
+      setFatalError(true)
+    } finally {
+      setLoadingData(false)
+    }
   }, [])
 
   useEffect(() => {
     fetchIdentities()
 
     // Pre-fetch all 3 OAuth URLs on mount so toggle clicks stay fully synchronous
-    Promise.all(
-      PROVIDERS.map(provider =>
-        supabase.auth.linkWithOAuth({
-          provider,
-          options: {
-            redirectTo: window.location.origin + '/settings/social',
-            skipBrowserRedirect: true,
-          },
+    const prefetchOAuthUrls = async () => {
+      try {
+        const results = await Promise.all(
+          PROVIDERS.map(provider =>
+            supabase.auth.linkWithOAuth({
+              provider,
+              options: {
+                redirectTo: window.location.origin + '/settings/social',
+                skipBrowserRedirect: true,
+              },
+            })
+          )
+        )
+        const urls = {}
+        PROVIDERS.forEach((p, i) => {
+          if (results[i]?.data?.url) urls[p] = results[i].data.url
         })
-      )
-    ).then(results => {
-      const urls = {}
-      PROVIDERS.forEach((p, i) => {
-        if (results[i].data?.url) urls[p] = results[i].data.url
-      })
-      setOauthUrls(urls)
-    })
+        setOauthUrls(urls)
+      } catch (err) {
+        console.error('OAuth URL pre-fetch failed — will fall back on tap:', err)
+        // Non-fatal: handleToggleClick fallback covers this case
+      }
+    }
+    prefetchOAuthUrls()
 
     // Re-fetch identities on return from OAuth redirect
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
@@ -210,7 +225,6 @@ export default function SettingsSocial() {
   const getIdentity = provider => identities.find(i => i.provider === provider)
   const dismissToast = useCallback(() => setToast(null), [])
 
-  // Fully synchronous — no async, no await, no Promise in this handler
   const handleToggleClick = (provider) => {
     if (isLinked(provider)) {
       if (identities.length <= 1) {
@@ -219,7 +233,18 @@ export default function SettingsSocial() {
       }
       setUnlinkPending(provider)
     } else {
-      anchorRefs[provider].current?.click()
+      const ref = anchorRefs[provider]?.current
+      const url = oauthUrls[provider]
+      if (ref && url) {
+        // Primary: synchronous anchor click — iOS Safari always allows native anchor navigation
+        ref.click()
+      } else {
+        // Fallback: direct linkWithOAuth without skipBrowserRedirect (Supabase handles redirect)
+        supabase.auth.linkWithOAuth({
+          provider,
+          options: { redirectTo: window.location.origin + '/settings/social' },
+        })
+      }
     }
   }
 
@@ -235,6 +260,22 @@ export default function SettingsSocial() {
     }
     setUnlinkLoading(false)
     setUnlinkPending(null)
+  }
+
+  if (fatalError) {
+    return (
+      <div className="min-h-screen bg-[#F5F0EB] pt-[62px] flex flex-col items-center justify-center px-8 text-center">
+        <p className="text-[17px] font-semibold mb-2" style={{ color: '#3D2B1F' }}>Σφάλμα φόρτωσης</p>
+        <p className="text-[14px]" style={{ color: '#A8A29E' }}>Παρακαλώ ελέγξτε τη σύνδεσή σας και δοκιμάστε ξανά.</p>
+        <button
+          onClick={() => { setFatalError(false); setLoadingData(true); fetchIdentities() }}
+          className="mt-6 px-6 py-3 rounded-full text-[14px] font-semibold cursor-pointer"
+          style={{ background: '#1C1917', color: 'white', border: 'none' }}
+        >
+          Δοκιμάστε ξανά
+        </button>
+      </div>
+    )
   }
 
   return (
