@@ -183,7 +183,7 @@ export default function SettingsSocial() {
   const getIdentity = provider => identities.find(i => i.provider === provider)
   const dismissToast = useCallback(() => setToast(null), [])
 
-  const handleToggleClick = (provider) => {
+  const handleToggleClick = async (provider) => {
     if (isLinked(provider)) {
       if (identities.length <= 1) {
         setToast(ONLY_IDENTITY_ERROR)
@@ -191,21 +191,20 @@ export default function SettingsSocial() {
       }
       setUnlinkPending(provider)
     } else {
-      // Fire synchronously in the same user-interaction tick so iOS Safari allows the redirect
-      supabase.auth.linkWithOAuth({
+      // skipBrowserRedirect: true → get URL back without auto-redirect,
+      // then set window.location.href ourselves (works on iOS Safari; window.open would not)
+      const { data, error } = await supabase.auth.linkWithOAuth({
         provider,
         options: {
           redirectTo: window.location.origin + '/settings/social',
-          skipBrowserRedirect: false,
+          skipBrowserRedirect: true,
         },
-      }).then(({ data, error }) => {
-        if (data?.url) {
-          window.location.href = data.url
-        }
-        if (error) {
-          setToast('Παρουσιάστηκε σφάλμα. Δοκιμάστε ξανά.')
-        }
       })
+      if (data?.url) {
+        window.location.href = data.url
+      } else if (error) {
+        setToast('Παρουσιάστηκε σφάλμα. Δοκιμάστε ξανά.')
+      }
     }
   }
 
@@ -238,7 +237,7 @@ export default function SettingsSocial() {
         >
           <ArrowLeft className="w-5 h-5" style={{ color: '#1C1917' }} strokeWidth={2} />
         </button>
-        <h1 className="text-[24px] font-bold leading-tight" style={{ color: '#3D2B1F' }}>
+        <h1 className="text-[24px] font-bold leading-tight" style={{ color: '#3D2B1F', fontFamily: 'Georgia, serif' }}>
           Στοιχεία σύνδεσης στα socials
         </h1>
       </div>
