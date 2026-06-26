@@ -11,6 +11,8 @@ const MONTHS = [
   'Σεπτέμβριος','Οκτώβριος','Νοέμβριος','Δεκέμβριος',
 ]
 
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
 function parsePhoneIdx(full) {
   if (!full) return 0
   for (let i = 0; i < COUNTRIES.length; i++) {
@@ -36,6 +38,10 @@ export default function ProfileEditDetails() {
   const [birthYear,   setBirthYear]   = useState('')
   const [gender,      setGender]      = useState('')
 
+  const [emailError,  setEmailError]  = useState('')
+  const [dobError,    setDobError]    = useState('')
+
+  // Load profile data
   useEffect(() => {
     if (authLoading) return
     if (!user) { navigate('/', { replace: true }); return }
@@ -56,7 +62,6 @@ export default function ProfileEditDetails() {
             setCountryIdx(idx)
             setPhoneNumber(data.phone.slice(COUNTRIES[idx].code.length))
           }
-          // Prefer profiles.email; fall back to auth user email
           if (data.email)        setEmail(data.email)
           if (data.birth_day)    setBirthDay(String(data.birth_day))
           if (data.birth_month)  setBirthMonth(String(data.birth_month))
@@ -67,7 +72,34 @@ export default function ProfileEditDetails() {
       })
   }, [user, authLoading, navigate])
 
+  // Validate age whenever all three DOB fields are filled
+  useEffect(() => {
+    if (!birthDay || !birthMonth || !birthYear) {
+      setDobError('')
+      return
+    }
+    const dob = new Date(parseInt(birthYear), parseInt(birthMonth) - 1, parseInt(birthDay))
+    const today = new Date()
+    let age = today.getFullYear() - dob.getFullYear()
+    const monthDiff = today.getMonth() - dob.getMonth()
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())) age--
+    setDobError(age < 18 ? 'Πρέπει να είστε άνω των 18 ετών για να χρησιμοποιήσετε την εφαρμογή' : '')
+  }, [birthDay, birthMonth, birthYear])
+
+  const validateEmail = (val) => {
+    if (val && !EMAIL_RE.test(val)) {
+      setEmailError('Εισαγάγετε μια έγκυρη διεύθυνση email')
+      return false
+    }
+    setEmailError('')
+    return true
+  }
+
   const handleSave = async () => {
+    // Run validations before saving
+    const emailOk = validateEmail(email)
+    if (!emailOk || dobError) return
+
     setSaving(true); setError('')
     const fullPhone = phoneNumber
       ? COUNTRIES[countryIdx].code + phoneNumber.replace(/\D/g, '')
@@ -93,6 +125,12 @@ export default function ProfileEditDetails() {
 
   const inputCls = 'w-full h-[52px] px-4 border border-[#D1CAC1] rounded-xl text-[15px] text-[#1C1917] placeholder-[#B8AEA6] focus:outline-none focus:border-[#1C1917] transition-colors bg-white'
   const labelCls = 'block text-[13px] font-semibold text-[#1C1917] mb-1.5'
+  const dobSelectCls = (hasError) =>
+    `w-full h-[52px] pl-3 pr-8 rounded-xl text-[14px] focus:outline-none bg-white appearance-none cursor-pointer transition-colors ${
+      hasError
+        ? 'border border-red-400 focus:border-red-400'
+        : 'border border-[#D1CAC1] focus:border-[#1C1917]'
+    }`
 
   return (
     <div className="min-h-screen bg-[#F5F0EB] pt-[62px] pb-10">
@@ -139,19 +177,31 @@ export default function ProfileEditDetails() {
         {/* Email */}
         <div>
           <label className={labelCls}>Διεύθυνση email</label>
-          <input type="email" className={inputCls} value={email} onChange={e => setEmail(e.target.value)} placeholder="email@example.com" />
+          <input
+            type="email"
+            className={`${inputCls}${emailError ? ' !border-red-400 focus:!border-red-400' : ''}`}
+            value={email}
+            onChange={e => { setEmail(e.target.value); if (emailError) validateEmail(e.target.value) }}
+            onBlur={() => validateEmail(email)}
+            placeholder="email@example.com"
+          />
+          {emailError && (
+            <p className="mt-1.5 text-[12px] font-medium" style={{ color: '#EF4444' }}>
+              {emailError}
+            </p>
+          )}
         </div>
 
         {/* Birth date */}
         <div>
           <label className={labelCls}>Ημερομηνία γέννησης</label>
           <div className="flex gap-2">
-            {/* Day dropdown */}
+            {/* Day */}
             <div className="relative flex-1">
               <select
                 value={birthDay}
                 onChange={e => setBirthDay(e.target.value)}
-                className="w-full h-[52px] pl-3 pr-8 border border-[#D1CAC1] rounded-xl text-[14px] focus:outline-none focus:border-[#1C1917] bg-white appearance-none cursor-pointer"
+                className={dobSelectCls(!!dobError)}
                 style={{ color: birthDay ? '#1C1917' : '#B8AEA6' }}
               >
                 <option value="" disabled>Ημέρα</option>
@@ -159,14 +209,14 @@ export default function ProfileEditDetails() {
                   <option key={d} value={d}>{d}</option>
                 ))}
               </select>
-              <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-[#A8A29E] pointer-events-none" />
+              <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none" style={{ color: dobError ? '#EF4444' : '#A8A29E' }} />
             </div>
-            {/* Month dropdown */}
+            {/* Month */}
             <div className="relative flex-[1.4]">
               <select
                 value={birthMonth}
                 onChange={e => setBirthMonth(e.target.value)}
-                className="w-full h-[52px] pl-3 pr-8 border border-[#D1CAC1] rounded-xl text-[14px] focus:outline-none focus:border-[#1C1917] bg-white appearance-none cursor-pointer"
+                className={dobSelectCls(!!dobError)}
                 style={{ color: birthMonth ? '#1C1917' : '#B8AEA6' }}
               >
                 <option value="" disabled>Μήνας</option>
@@ -174,14 +224,14 @@ export default function ProfileEditDetails() {
                   <option key={i + 1} value={i + 1}>{m}</option>
                 ))}
               </select>
-              <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-[#A8A29E] pointer-events-none" />
+              <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none" style={{ color: dobError ? '#EF4444' : '#A8A29E' }} />
             </div>
-            {/* Year dropdown */}
+            {/* Year */}
             <div className="relative flex-1">
               <select
                 value={birthYear}
                 onChange={e => setBirthYear(e.target.value)}
-                className="w-full h-[52px] pl-3 pr-8 border border-[#D1CAC1] rounded-xl text-[14px] focus:outline-none focus:border-[#1C1917] bg-white appearance-none cursor-pointer"
+                className={dobSelectCls(!!dobError)}
                 style={{ color: birthYear ? '#1C1917' : '#B8AEA6' }}
               >
                 <option value="" disabled>Έτος</option>
@@ -192,9 +242,14 @@ export default function ProfileEditDetails() {
                   <option key={y} value={y}>{y}</option>
                 ))}
               </select>
-              <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-[#A8A29E] pointer-events-none" />
+              <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none" style={{ color: dobError ? '#EF4444' : '#A8A29E' }} />
             </div>
           </div>
+          {dobError && (
+            <p className="mt-1.5 text-[12px] font-medium" style={{ color: '#EF4444' }}>
+              {dobError}
+            </p>
+          )}
         </div>
 
         {/* Gender */}
