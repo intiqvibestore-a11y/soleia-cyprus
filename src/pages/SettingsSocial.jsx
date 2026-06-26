@@ -137,22 +137,18 @@ export default function SettingsSocial() {
       ]).then(([{ data: { session } }, { data: { user: currentUser } }]) => {
         const uid = currentUser?.id || session?.user?.id
 
-        // Only mark connected if the session's provider actually matches —
-        // a cancelled OAuth leaves the original session unchanged (e.g. provider: 'email')
-        const sessionProvider = session?.user?.app_metadata?.provider
+        // Verify the specific provider was actually connected via identities
         const identities = session?.user?.identities || []
-        const providerMatches =
-          sessionProvider === connectingProvider ||
-          identities.some(i => i.provider === connectingProvider)
+        const providerConnected = identities.some(i => i.provider === connectingProvider)
 
-        if (uid && providerMatches) {
-          // OAuth completed successfully — persist and refresh toggles
+        if (uid && providerConnected) {
+          // OAuth succeeded — update only this provider's column, then reload from profiles
           supabase.from('profiles')
             .update({ [`connected_${connectingProvider}`]: true })
             .eq('id', uid)
             .then(() => loadToggles(uid))
         } else {
-          // Cancelled or failed — load current state without updating
+          // Cancelled or failed — reload profiles as-is, no update
           const loadId = uid || user?.id
           if (loadId) loadToggles(loadId)
           else setLoadingData(false)
