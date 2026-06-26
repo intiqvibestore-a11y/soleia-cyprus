@@ -4,6 +4,7 @@ import { ArrowLeft, AlertCircle } from 'lucide-react'
 import { supabase } from '../utils/supabase/client'
 
 const ONLY_IDENTITY_ERROR = 'Δεν μπορείτε να αποσυνδέσετε τον μοναδικό τρόπο σύνδεσής σας.'
+const PROVIDER_NAMES = { google: 'Google', facebook: 'Facebook', apple: 'Apple' }
 
 function Toast({ message, onDismiss }) {
   useEffect(() => {
@@ -18,6 +19,43 @@ function Toast({ message, onDismiss }) {
     >
       <AlertCircle className="w-5 h-5 shrink-0" style={{ color: '#EF4444' }} strokeWidth={2} />
       <span className="text-[13px] font-medium text-white leading-snug">{message}</span>
+    </div>
+  )
+}
+
+function UnlinkSheet({ provider, onCancel, onConfirm, loading }) {
+  const name = PROVIDER_NAMES[provider] || provider
+  return (
+    <div
+      className="fixed inset-0 z-[400] flex items-end"
+      style={{ background: 'rgba(28,25,23,0.45)' }}
+      onClick={() => !loading && onCancel()}
+    >
+      <div
+        className="w-full bg-[#FDFAF7] rounded-t-[28px] px-6 pt-5 pb-10"
+        onClick={e => e.stopPropagation()}
+      >
+        <div className="w-10 h-1 rounded-full mx-auto mb-6" style={{ background: '#D1CAC1' }} />
+        <h2 className="text-[19px] font-bold mb-7" style={{ color: '#3D2B1F' }}>
+          Αποσύνδεση από {name};
+        </h2>
+        <button
+          onClick={onConfirm}
+          disabled={loading}
+          className="w-full py-[14px] rounded-full font-semibold text-[15px] mb-3 cursor-pointer"
+          style={{ background: '#EF4444', color: 'white', border: 'none', opacity: loading ? 0.6 : 1 }}
+        >
+          {loading ? 'Αποσύνδεση...' : 'Αποσύνδεση'}
+        </button>
+        <button
+          onClick={onCancel}
+          disabled={loading}
+          className="w-full py-[14px] rounded-full font-semibold text-[15px] cursor-pointer"
+          style={{ background: 'transparent', border: '1.5px solid #D1CAC1', color: '#3D2B1F', opacity: loading ? 0.5 : 1 }}
+        >
+          Ακύρωση
+        </button>
+      </div>
     </div>
   )
 }
@@ -95,7 +133,7 @@ function AppleLogo() {
   )
 }
 
-function ProviderRow({ logo, name, linked, onToggle, toggling, first = false }) {
+function ProviderRow({ logo, name, linked, onToggle, disabled, first = false }) {
   return (
     <div
       className="flex items-center gap-4 px-5 py-4"
@@ -110,62 +148,76 @@ function ProviderRow({ logo, name, linked, onToggle, toggling, first = false }) 
           {linked ? 'Συνδεδεμένο' : 'Μη συνδεδεμένο'}
         </p>
       </div>
-      <Toggle value={linked} onChange={onToggle} disabled={toggling} />
+      <Toggle value={linked} onChange={onToggle} disabled={disabled} />
     </div>
   )
 }
 
 export default function SettingsSocial() {
   const navigate = useNavigate()
-  const [identities, setIdentities] = useState([])
-  const [loadingData, setLoadingData] = useState(true)
-  const [toggling, setToggling] = useState({})
-  const [toast, setToast] = useState(null)
+  const [identities, setIdentities]       = useState([])
+  const [loadingData, setLoadingData]     = useState(true)
+  const [linkingProvider, setLinkingProvider] = useState(null)
+  const [unlinkPending, setUnlinkPending] = useState(null)
+  const [unlinkLoading, setUnlinkLoading] = useState(false)
+  const [toast, setToast]                 = useState(null)
 
-  useEffect(() => {
-    supabase.auth.getUserIdentities().then(({ data }) => {
-      setIdentities(data?.identities || [])
-      setLoadingData(false)
-    })
+  const fetchIdentities = useCallback(async () => {
+    const { data } = await supabase.auth.getUserIdentities()
+    setIdentities(data?.identities || [])
+    setLoadingData(false)
   }, [])
 
-  const isLinked = provider => identities.some(i => i.provider === provider)
-  const getIdentity = provider => identities.find(i => i.provider === provider)
+  useEffect(() => {
+    fetchIdentities()
 
+    // Re-fetch on return from OAuth redirect or any auth state change
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+      if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED') {
+        fetchIdentities()
+      }
+    })
+    return () => subscription.unsubscribe()
+  }, [fetchIdentities])
+
+  const isLinked   = provider => identities.some(i => i.provider === provider)
+  const getIdentity = provider => identities.find(i => i.provider === provider)
   const dismissToast = useCallback(() => setToast(null), [])
 
-  const handleToggle = async (provider) => {
-    if (toggling[provider]) return
+  const handleToggleClick = async (provider) => {
+    if (linkingProvider) return
 
     if (isLinked(provider)) {
-      // Guard: can't unlink the only identity
       if (identities.length <= 1) {
         setToast(ONLY_IDENTITY_ERROR)
         return
       }
-
-      setToggling(t => ({ ...t, [provider]: true }))
-      const identity = getIdentity(provider)
-      const { error } = await supabase.auth.unlinkIdentity(identity)
-
-      if (error) {
-        setToast(ONLY_IDENTITY_ERROR)
-      } else {
-        setIdentities(prev => prev.filter(i => i.provider !== provider))
-      }
-      setToggling(t => ({ ...t, [provider]: false }))
+      setUnlinkPending(provider)
     } else {
-      // Link new provider — redirects away; do NOT flip toggle optimistically
-      setToggling(t => ({ ...t, [provider]: true }))
-      await supabase.auth.linkWithOAuth({
+      // Immediately start link flow — page will redirect away
+      setLinkingProvider(provider)
+      const { error } = await supabase.auth.linkWithOAuth({
         provider,
-        options: {
-          redirectTo: window.location.origin + '/settings/social',
-        },
+        options: { redirectTo: window.location.origin + '/settings/social' },
       })
-      // If redirect did not happen (error / popup blocked), reset spinner
-      setToggling(t => ({ ...t, [provider]: false }))
+      // Only reached if redirect didn't fire (error / blocked)
+      if (error) setToast('Παρουσιάστηκε σφάλμα. Δοκιμάστε ξανά.')
+      setLinkingProvider(null)
     }
+  }
+
+  const handleUnlinkConfirm = async () => {
+    if (!unlinkPending) return
+    setUnlinkLoading(true)
+    const identity = getIdentity(unlinkPending)
+    const { error } = await supabase.auth.unlinkIdentity(identity)
+    if (error) {
+      setToast(ONLY_IDENTITY_ERROR)
+    } else {
+      await fetchIdentities()
+    }
+    setUnlinkLoading(false)
+    setUnlinkPending(null)
   }
 
   return (
@@ -206,23 +258,23 @@ export default function SettingsSocial() {
               logo={<GoogleLogo />}
               name="Google"
               linked={isLinked('google')}
-              onToggle={() => handleToggle('google')}
-              toggling={!!toggling.google}
+              onToggle={() => handleToggleClick('google')}
+              disabled={linkingProvider === 'google'}
               first
             />
             <ProviderRow
               logo={<FacebookLogo />}
               name="Facebook"
               linked={isLinked('facebook')}
-              onToggle={() => handleToggle('facebook')}
-              toggling={!!toggling.facebook}
+              onToggle={() => handleToggleClick('facebook')}
+              disabled={linkingProvider === 'facebook'}
             />
             <ProviderRow
               logo={<AppleLogo />}
               name="Apple"
               linked={isLinked('apple')}
-              onToggle={() => handleToggle('apple')}
-              toggling={!!toggling.apple}
+              onToggle={() => handleToggleClick('apple')}
+              disabled={linkingProvider === 'apple'}
             />
           </>
         )}
@@ -241,6 +293,16 @@ export default function SettingsSocial() {
           Έτοιμο
         </button>
       </div>
+
+      {/* Unlink confirmation sheet */}
+      {unlinkPending && (
+        <UnlinkSheet
+          provider={unlinkPending}
+          onCancel={() => setUnlinkPending(null)}
+          onConfirm={handleUnlinkConfirm}
+          loading={unlinkLoading}
+        />
+      )}
 
     </div>
   )
