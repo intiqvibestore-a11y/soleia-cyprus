@@ -1,114 +1,10 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ArrowLeft, AlertCircle } from 'lucide-react'
+import { ArrowLeft } from 'lucide-react'
+import { useAuth } from '../context/AuthContext'
 import { supabase } from '../utils/supabase/client'
 
-const ONLY_IDENTITY_ERROR = 'Δεν μπορείτε να αποσυνδέσετε τον μοναδικό τρόπο σύνδεσής σας.'
 const PROVIDER_NAMES = { google: 'Google', facebook: 'Facebook', apple: 'Apple' }
-
-function Toast({ message, onDismiss }) {
-  useEffect(() => {
-    const t = setTimeout(onDismiss, 3500)
-    return () => clearTimeout(t)
-  }, [onDismiss])
-
-  return (
-    <div
-      className="fixed top-[78px] left-4 right-4 z-[600] flex items-center gap-3 px-4 py-3 rounded-2xl"
-      style={{ background: '#1C1917', boxShadow: '0 4px 20px rgba(0,0,0,0.25)' }}
-    >
-      <AlertCircle className="w-5 h-5 shrink-0" style={{ color: '#EF4444' }} strokeWidth={2} />
-      <span className="text-[13px] font-medium text-white leading-snug">{message}</span>
-    </div>
-  )
-}
-
-function LinkSheet({ provider, linkUrl, onClose }) {
-  const name = PROVIDER_NAMES[provider] || provider
-  return (
-    <div
-      className="fixed inset-0 z-[400] flex items-end"
-      style={{ background: 'rgba(28,25,23,0.45)' }}
-      onClick={onClose}
-    >
-      <div
-        className="w-full bg-[#FDFAF7] rounded-t-[28px] px-6 pt-5 pb-10"
-        onClick={e => e.stopPropagation()}
-      >
-        <div className="w-10 h-1 rounded-full mx-auto mb-6" style={{ background: '#D1CAC1' }} />
-        <h2 className="text-[19px] font-bold mb-7" style={{ color: '#3D2B1F' }}>
-          Σύνδεση με {name}
-        </h2>
-
-        {/* Render <a> only after URL is ready — native link iOS Safari can always follow */}
-        {linkUrl ? (
-          <a
-            href={linkUrl}
-            className="block w-full py-[14px] rounded-full font-semibold text-[15px] text-center"
-            style={{ background: '#1C1917', color: 'white', textDecoration: 'none' }}
-          >
-            Σύνδεση με {name}
-          </a>
-        ) : (
-          <div
-            className="w-full py-[14px] rounded-full flex items-center justify-center"
-            style={{ background: '#1C1917' }}
-          >
-            <div
-              className="w-5 h-5 rounded-full border-2 animate-spin"
-              style={{ borderColor: 'rgba(255,255,255,0.25)', borderTopColor: 'white' }}
-            />
-          </div>
-        )}
-
-        <button
-          onClick={onClose}
-          className="w-full py-[14px] rounded-full font-semibold text-[15px] mt-3 cursor-pointer"
-          style={{ background: 'transparent', border: '1.5px solid #D1CAC1', color: '#3D2B1F' }}
-        >
-          Ακύρωση
-        </button>
-      </div>
-    </div>
-  )
-}
-
-function UnlinkSheet({ provider, onCancel, onConfirm, loading }) {
-  const name = PROVIDER_NAMES[provider] || provider
-  return (
-    <div
-      className="fixed inset-0 z-[400] flex items-end"
-      style={{ background: 'rgba(28,25,23,0.45)' }}
-      onClick={() => !loading && onCancel()}
-    >
-      <div
-        className="w-full bg-[#FDFAF7] rounded-t-[28px] px-6 pt-5 pb-10"
-        onClick={e => e.stopPropagation()}
-      >
-        <div className="w-10 h-1 rounded-full mx-auto mb-6" style={{ background: '#D1CAC1' }} />
-        <h2 className="text-[19px] font-bold mb-7" style={{ color: '#3D2B1F' }}>
-          Αποσύνδεση από {name};
-        </h2>
-        <button
-          onClick={onConfirm}
-          disabled={loading}
-          className="w-full py-[14px] rounded-full font-semibold text-[15px] mb-3 cursor-pointer"
-          style={{ background: '#EF4444', color: 'white', border: 'none', opacity: loading ? 0.6 : 1 }}
-        >
-          {loading ? 'Αποσύνδεση...' : 'Αποσύνδεση'}
-        </button>
-        <button
-          onClick={onCancel}
-          disabled={loading}
-          className="w-full py-[14px] rounded-full font-semibold text-[15px] cursor-pointer"
-          style={{ background: 'transparent', border: '1.5px solid #D1CAC1', color: '#3D2B1F', opacity: loading ? 0.5 : 1 }}
-        >
-          Ακύρωση
-        </button>
-      </div>
-    </div>
-  )
-}
 
 function Toggle({ value, onChange }) {
   return (
@@ -207,81 +103,87 @@ function ProviderRow({ provider, linked, onToggle, first = false }) {
 
 export default function SettingsSocial() {
   const navigate = useNavigate()
-  const [identities, setIdentities]       = useState([])
-  const [loadingData, setLoadingData]     = useState(true)
-  const [linkSheet, setLinkSheet]         = useState(null)   // provider string | null
-  const [linkUrl, setLinkUrl]             = useState(null)   // fetched OAuth URL for link sheet
-  const [unlinkPending, setUnlinkPending] = useState(null)   // provider string | null
-  const [unlinkLoading, setUnlinkLoading] = useState(false)
-  const [toast, setToast]                 = useState(null)
+  const { user } = useAuth()
 
-  const fetchIdentities = useCallback(async () => {
-    const { data } = await supabase.auth.getUserIdentities()
-    setIdentities(data?.identities || [])
+  const [toggles, setToggles] = useState({ google: false, facebook: false, apple: false })
+  const [loadingData, setLoadingData] = useState(true)
+  const [saving, setSaving] = useState(false)
+
+  const loadToggles = useCallback(async (userId) => {
+    if (!userId) return
+    const { data } = await supabase
+      .from('profiles')
+      .select('connected_google, connected_facebook, connected_apple')
+      .eq('id', userId)
+      .single()
+    setToggles({
+      google:   data?.connected_google   ?? false,
+      facebook: data?.connected_facebook ?? false,
+      apple:    data?.connected_apple    ?? false,
+    })
     setLoadingData(false)
   }, [])
 
-  // On mount: load real identity state + subscribe to auth changes (handles OAuth return)
   useEffect(() => {
-    fetchIdentities()
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
-      if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED') {
-        fetchIdentities()
-      }
-    })
-    return () => subscription.unsubscribe()
-  }, [fetchIdentities])
+    const connectingProvider = sessionStorage.getItem('connectingProvider')
 
-  // When link sheet opens: fetch the OAuth URL for that provider
-  useEffect(() => {
-    if (!linkSheet) { setLinkUrl(null); return }
-    supabase.auth.linkWithOAuth({
-      provider: linkSheet,
-      options: {
-        redirectTo: window.location.origin + '/settings/social',
-        skipBrowserRedirect: true,
-      },
-    }).then(({ data }) => {
-      setLinkUrl(data?.url || null)
-    }).catch(() => {
-      setLinkUrl(null)
-    })
-  }, [linkSheet])
-
-  const isLinked    = provider => identities.some(i => i.provider === provider)
-  const getIdentity = provider => identities.find(i => i.provider === provider)
-  const dismissToast = useCallback(() => setToast(null), [])
+    if (connectingProvider) {
+      // Returned from OAuth — verify session and mark provider as connected
+      sessionStorage.removeItem('connectingProvider')
+      Promise.all([
+        supabase.auth.getSession(),
+        supabase.auth.getUser(),
+      ]).then(([{ data: { session } }, { data: { user: currentUser } }]) => {
+        const uid = currentUser?.id || session?.user?.id
+        if (uid) {
+          supabase.from('profiles')
+            .update({ [`connected_${connectingProvider}`]: true })
+            .eq('id', uid)
+            .then(() => loadToggles(uid))
+        } else {
+          if (user?.id) loadToggles(user.id)
+          else setLoadingData(false)
+        }
+      })
+    } else {
+      if (user?.id) loadToggles(user.id)
+      else setLoadingData(false)
+    }
+  }, [user, loadToggles])
 
   const handleToggleClick = (provider) => {
-    if (isLinked(provider)) {
-      if (identities.length <= 1) {
-        setToast(ONLY_IDENTITY_ERROR)
-        return
+    if (toggles[provider]) {
+      // ON → OFF: immediately flip and update DB
+      setToggles(t => ({ ...t, [provider]: false }))
+      if (user?.id) {
+        supabase.from('profiles')
+          .update({ [`connected_${provider}`]: false })
+          .eq('id', user.id)
       }
-      setUnlinkPending(provider)
     } else {
-      setLinkSheet(provider)
+      // OFF → ON: store which provider then redirect to OAuth
+      sessionStorage.setItem('connectingProvider', provider)
+      supabase.auth.signInWithOAuth({
+        provider,
+        options: { redirectTo: window.location.origin + '/settings/social' },
+      })
     }
   }
 
-  const handleUnlinkConfirm = async () => {
-    if (!unlinkPending) return
-    setUnlinkLoading(true)
-    const identity = getIdentity(unlinkPending)
-    const { error } = await supabase.auth.unlinkIdentity(identity)
-    if (error) {
-      setToast(ONLY_IDENTITY_ERROR)
-    } else {
-      await fetchIdentities()
-    }
-    setUnlinkLoading(false)
-    setUnlinkPending(null)
+  const handleDone = async () => {
+    if (!user?.id) { navigate('/settings'); return }
+    setSaving(true)
+    await supabase.from('profiles').update({
+      connected_google:   toggles.google,
+      connected_facebook: toggles.facebook,
+      connected_apple:    toggles.apple,
+    }).eq('id', user.id)
+    setSaving(false)
+    navigate('/settings')
   }
 
   return (
     <div className="min-h-screen bg-[#F5F0EB] pt-[62px] pb-[160px]">
-
-      {toast && <Toast message={toast} onDismiss={dismissToast} />}
 
       {/* Header */}
       <div className="px-5 pt-4 pb-3">
@@ -315,9 +217,9 @@ export default function SettingsSocial() {
           </div>
         ) : (
           <>
-            <ProviderRow provider="google"   linked={isLinked('google')}   onToggle={() => handleToggleClick('google')}   first />
-            <ProviderRow provider="facebook" linked={isLinked('facebook')} onToggle={() => handleToggleClick('facebook')} />
-            <ProviderRow provider="apple"    linked={isLinked('apple')}    onToggle={() => handleToggleClick('apple')}    />
+            <ProviderRow provider="google"   linked={toggles.google}   onToggle={() => handleToggleClick('google')}   first />
+            <ProviderRow provider="facebook" linked={toggles.facebook} onToggle={() => handleToggleClick('facebook')} />
+            <ProviderRow provider="apple"    linked={toggles.apple}    onToggle={() => handleToggleClick('apple')}    />
           </>
         )}
       </div>
@@ -325,32 +227,14 @@ export default function SettingsSocial() {
       {/* Fixed "Έτοιμο" button — above BottomNav */}
       <div className="fixed left-0 right-0 z-[200] px-5" style={{ bottom: '68px' }}>
         <button
-          onClick={() => navigate('/settings')}
+          onClick={handleDone}
+          disabled={saving}
           className="w-full py-[15px] rounded-full font-semibold text-[16px] cursor-pointer"
-          style={{ background: '#1C1917', color: 'white', border: 'none' }}
+          style={{ background: '#1C1917', color: 'white', border: 'none', opacity: saving ? 0.7 : 1 }}
         >
-          Έτοιμο
+          {saving ? 'Αποθήκευση...' : 'Έτοιμο'}
         </button>
       </div>
-
-      {/* Link sheet — opens when toggling OFF→ON */}
-      {linkSheet && (
-        <LinkSheet
-          provider={linkSheet}
-          linkUrl={linkUrl}
-          onClose={() => setLinkSheet(null)}
-        />
-      )}
-
-      {/* Unlink confirmation sheet — opens when toggling ON→OFF */}
-      {unlinkPending && (
-        <UnlinkSheet
-          provider={unlinkPending}
-          onCancel={() => setUnlinkPending(null)}
-          onConfirm={handleUnlinkConfirm}
-          loading={unlinkLoading}
-        />
-      )}
 
     </div>
   )
