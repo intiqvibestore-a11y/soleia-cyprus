@@ -60,7 +60,7 @@ export default function ProfileEdit() {
   const initials = displayName.split(' ').filter(Boolean).map(w => w[0]).join('').toUpperCase().slice(0, 2)
 
   const phone = profile?.phone || ''
-  const email = user.email || ''
+  const email = profile?.email || user.email || ''
   const birthDate = profile?.birth_day
     ? `${String(profile.birth_day).padStart(2, '0')}/${String(profile.birth_month).padStart(2, '0')}/${profile.birth_year}`
     : '–'
