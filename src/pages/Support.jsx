@@ -5,15 +5,20 @@ import emailjs from '@emailjs/browser'
 import { supabase } from '../utils/supabase/client'
 
 const EJS_SERVICE  = 'service_upa5skh'
-const EJS_TEMPLATE = 'template_swsfu0f'
+const EJS_TEMPLATE = 'template_z3ob4x7'
 const EJS_KEY      = '9yltr7c1VxXHwhZAs'
-const TO_EMAIL     = 'intiqvibestore@gmail.com'
 
-function sendEmail({ from_email, subject, reason, message }) {
+function sendEmail({ from_email, subject, reason, message, name }) {
   return emailjs.send(
     EJS_SERVICE,
     EJS_TEMPLATE,
-    { from_email, subject, reason, message, to_email: TO_EMAIL },
+    {
+      from_email,
+      subject,
+      reason: reason || 'Δεν επιλέχθηκε',
+      message,
+      name: name || from_email,
+    },
     EJS_KEY
   )
 }
@@ -167,7 +172,7 @@ const REASONS_1 = [
   'Άλλα ερωτήματα',
 ]
 
-function Form1({ userEmail, topic, onSuccess, onError }) {
+function Form1({ userEmail, userName, topic, onSuccess, onError }) {
   const [email,   setEmail]   = useState(userEmail)
   const [reason,  setReason]  = useState('')
   const [desc,    setDesc]    = useState('')
@@ -190,7 +195,7 @@ function Form1({ userEmail, topic, onSuccess, onError }) {
     if (!validate()) return
     setLoading(true)
     const message = desc + (file ? `\n\nΣυνημμένο: ${file.name}` : '')
-    sendEmail({ from_email: email, subject: topic, reason, message })
+    sendEmail({ from_email: email, subject: topic, reason, message, name: userName || email })
       .then(() => {
         setLoading(false)
         setEmail(userEmail); setReason(''); setDesc(''); setFile(null); setErrors({})
@@ -224,7 +229,7 @@ const BUSINESS_TYPES = [
 ]
 const TEAM_SIZES = ['Μόνο εγώ', '2-5', '6-10', '11+']
 
-function Form2({ userEmail, topic, onSuccess, onError }) {
+function Form2({ userEmail, userName, topic, onSuccess, onError }) {
   const [email,    setEmail]    = useState(userEmail)
   const [fullName, setFullName] = useState('')
   const [phone,    setPhone]    = useState('')
@@ -256,7 +261,7 @@ function Form2({ userEmail, topic, onSuccess, onError }) {
     const message =
       `Ονοματεπώνυμο: ${fullName}\nΤηλέφωνο: +357${phone}\nΧώρα: Κύπρος\n` +
       `Επιχείρηση: ${bizName}\nΜέγεθος ομάδας: ${teamSize}\n\nΕρωτήματα:\n${notes}`
-    sendEmail({ from_email: email, subject: topic, reason: bizType, message })
+    sendEmail({ from_email: email, subject: topic, reason: bizType, message, name: fullName || userName || email })
       .then(() => {
         setLoading(false)
         setEmail(userEmail); setFullName(''); setPhone(''); setBizName('')
@@ -329,7 +334,7 @@ const REASONS_3 = [
   'Άλλο',
 ]
 
-function Form3({ userEmail, topic, onSuccess, onError }) {
+function Form3({ userEmail, userName, topic, onSuccess, onError }) {
   const [email,   setEmail]   = useState(userEmail)
   const [reason,  setReason]  = useState('')
   const [desc,    setDesc]    = useState('')
@@ -352,7 +357,7 @@ function Form3({ userEmail, topic, onSuccess, onError }) {
     if (!validate()) return
     setLoading(true)
     const message = desc + (file ? `\n\nΣυνημμένο: ${file.name}` : '')
-    sendEmail({ from_email: email, subject: topic, reason, message })
+    sendEmail({ from_email: email, subject: topic, reason, message, name: userName || email })
       .then(() => {
         setLoading(false)
         setEmail(userEmail); setReason(''); setDesc(''); setFile(null); setErrors({})
@@ -389,6 +394,7 @@ const MAIN_OPTIONS = [
 export default function Support() {
   const navigate = useNavigate()
   const [userEmail, setUserEmail] = useState('')
+  const [userName,  setUserName]  = useState('')
   const [topic, setTopic]         = useState('')
   const [toast, setToast]         = useState(null) // { type: 'success'|'error', msg: string }
 
@@ -396,6 +402,8 @@ export default function Support() {
     supabase.auth.getUser().then(({ data: { user } }) => {
       const e = user?.email || user?.user_metadata?.email || ''
       if (e) setUserEmail(e)
+      const n = user?.user_metadata?.full_name || user?.user_metadata?.name || ''
+      if (n) setUserName(n)
     })
   }, [])
 
@@ -455,9 +463,9 @@ export default function Support() {
         {topic && (
           <>
             <div className="h-px" style={{ background: '#E8E0D8' }} />
-            {topic === MAIN_OPTIONS[0] && <Form1 userEmail={userEmail} topic={topic} onSuccess={handleSuccess} onError={handleError} />}
-            {topic === MAIN_OPTIONS[1] && <Form2 userEmail={userEmail} topic={topic} onSuccess={handleSuccess} onError={handleError} />}
-            {topic === MAIN_OPTIONS[2] && <Form3 userEmail={userEmail} topic={topic} onSuccess={handleSuccess} onError={handleError} />}
+            {topic === MAIN_OPTIONS[0] && <Form1 userEmail={userEmail} userName={userName} topic={topic} onSuccess={handleSuccess} onError={handleError} />}
+            {topic === MAIN_OPTIONS[1] && <Form2 userEmail={userEmail} userName={userName} topic={topic} onSuccess={handleSuccess} onError={handleError} />}
+            {topic === MAIN_OPTIONS[2] && <Form3 userEmail={userEmail} userName={userName} topic={topic} onSuccess={handleSuccess} onError={handleError} />}
           </>
         )}
 
