@@ -201,7 +201,7 @@ export default function Services() {
   ]
 
   return (
-    <div className="fixed inset-0 top-[62px] overflow-hidden">
+    <div className="fixed inset-0 top-0 overflow-hidden">
 
       {/* Compact search bar over map */}
       <div className="absolute top-3 left-3 right-3 z-[200] flex items-center gap-2">

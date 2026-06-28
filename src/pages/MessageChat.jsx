@@ -81,7 +81,7 @@ export default function MessageChat() {
 
       {/* ── Sticky header ── */}
       <div
-        className="sticky top-[62px] z-[200] flex items-center justify-between px-4 py-3 border-b"
+        className="sticky top-0 z-[200] flex items-center justify-between px-4 py-3 border-b"
         style={{ background: '#F5F0EB', borderColor: 'rgba(201,168,130,0.22)' }}
       >
         {/* Back + business info */}

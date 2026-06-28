@@ -65,7 +65,7 @@ export default function SearchPage() {
 
   return (
     <div
-      className="fixed inset-0 top-[62px] z-[350] bg-[#FDFAF7] flex flex-col"
+      className="fixed inset-0 top-0 z-[350] bg-[#FDFAF7] flex flex-col"
       style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
     >
       {/* Header */}
