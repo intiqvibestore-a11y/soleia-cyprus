@@ -12,19 +12,19 @@ function OtpView({ phone, onBack, onSuccess }) {
   const [error, setError] = useState('')
   const refs = useRef([])
 
-  useEffect(() => { refs.current[0]?.focus() }, [])
+  useEffect(() => { refs.current[0]?.focus({ preventScroll: true }) }, [])
 
   const handleChange = (i, value) => {
     const digit = value.replace(/\D/g, '').slice(-1)
     const next = [...digits]
     next[i] = digit
     setDigits(next)
-    if (digit && i < 5) refs.current[i + 1]?.focus()
+    if (digit && i < 5) refs.current[i + 1]?.focus({ preventScroll: true })
   }
 
   const handleKeyDown = (i, e) => {
     if (e.key === 'Backspace' && !digits[i] && i > 0) {
-      refs.current[i - 1]?.focus()
+      refs.current[i - 1]?.focus({ preventScroll: true })
     }
   }
 
@@ -35,7 +35,7 @@ function OtpView({ phone, onBack, onSuccess }) {
     const next = Array(6).fill('')
     pasted.split('').forEach((d, i) => { next[i] = d })
     setDigits(next)
-    refs.current[Math.min(pasted.length, 5)]?.focus()
+    refs.current[Math.min(pasted.length, 5)]?.focus({ preventScroll: true })
   }
 
   const handleVerify = async () => {
@@ -76,11 +76,14 @@ function OtpView({ phone, onBack, onSuccess }) {
             type="text"
             inputMode="numeric"
             maxLength={2}
+            autoComplete={i === 0 ? 'one-time-code' : 'off'}
             value={d}
             onChange={e => handleChange(i, e.target.value)}
             onKeyDown={e => handleKeyDown(i, e)}
-            className="w-[46px] h-[54px] text-center text-[22px] font-bold rounded-xl transition-colors focus:outline-none"
+            className="w-[46px] h-[54px] text-center font-bold rounded-xl transition-colors focus:outline-none"
             style={{
+              fontSize: '22px',
+              touchAction: 'manipulation',
               border: `2px solid ${d ? '#1C1917' : '#D1CAC1'}`,
               background: d ? '#F8F5F2' : 'white',
               color: '#1C1917',
@@ -244,6 +247,12 @@ export default function AuthModal({ onClose }) {
   const [googleLoading, setGoogleLoading] = useState(false)
   const [facebookLoading, setFacebookLoading] = useState(false)
 
+  // Close the modal and redirect to home after any successful auth
+  const handleSuccess = () => {
+    onClose()
+    window.location.href = '/'
+  }
+
   useEffect(() => {
     document.body.style.overflow = 'hidden'
     return () => { document.body.style.overflow = '' }
@@ -298,7 +307,7 @@ export default function AuthModal({ onClose }) {
       })
 
       setGoogleLoading(false)
-      onClose()
+      handleSuccess()
     }
     window.addEventListener('message', onMessage)
 
@@ -334,7 +343,7 @@ export default function AuthModal({ onClose }) {
       clearInterval(pollTimer)
       await supabase.auth.setSession({ access_token: event.data.access_token, refresh_token: event.data.refresh_token })
       setFacebookLoading(false)
-      onClose()
+      handleSuccess()
     }
     window.addEventListener('message', onMessage)
     const pollTimer = setInterval(() => {
@@ -384,9 +393,9 @@ export default function AuthModal({ onClose }) {
           <p className="text-[14px] text-[#78716C] mb-7">{T.auth_subtitle}</p>
 
           {view === 'otp' ? (
-            <OtpView phone={phoneE164} onBack={() => setView('main')} onSuccess={onClose} />
+            <OtpView phone={phoneE164} onBack={() => setView('main')} onSuccess={handleSuccess} />
           ) : view === 'email' ? (
-            <EmailView onBack={() => setView('main')} onSuccess={onClose} />
+            <EmailView onBack={() => setView('main')} onSuccess={handleSuccess} />
           ) : (
             <>
               {/* Phone input */}
@@ -400,7 +409,8 @@ export default function AuthModal({ onClose }) {
                   value={phone}
                   onChange={e => { setPhone(e.target.value); setPhoneError('') }}
                   placeholder="99 000 000"
-                  className="flex-1 h-[52px] px-4 border border-[#D1CAC1] rounded-xl text-[15px] text-[#1C1917] placeholder-[#B8AEA6] focus:outline-none focus:border-[#1C1917] transition-colors"
+                  className="flex-1 h-[52px] px-4 border border-[#D1CAC1] rounded-xl text-[#1C1917] placeholder-[#B8AEA6] focus:outline-none focus:border-[#1C1917] transition-colors"
+                  style={{ fontSize: '16px', touchAction: 'manipulation' }}
                 />
               </div>
               <p className="text-[12px] text-[#A8A29E] leading-relaxed mb-3">{T.auth_phone_note}</p>
