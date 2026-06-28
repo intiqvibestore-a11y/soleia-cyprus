@@ -184,7 +184,6 @@ export default function Home() {
           }
         </ScrollRow>
 
-        <div className="max-w-7xl mx-auto px-5 sm:px-8"><hr className="border-[#F0EAE3]" /></div>
 
         {/* Νέα στη Soleia */}
         <ScrollRow label={T.home_new}>
@@ -194,7 +193,6 @@ export default function Home() {
           }
         </ScrollRow>
 
-        <div className="max-w-7xl mx-auto px-5 sm:px-8"><hr className="border-[#F0EAE3]" /></div>
       </div>
 
       <section className="py-10 sm:py-14">
