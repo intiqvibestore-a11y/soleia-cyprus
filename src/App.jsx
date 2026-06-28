@@ -131,6 +131,7 @@ function AppContent() {
             <Route path="/search"          element={<SearchPage />} />
             <Route path="/providers/:id"   element={<ProviderProfile />} />
             <Route path="/book/:serviceId" element={<Booking />} />
+            <Route path="/booking/:id"    element={<Booking />} />
             <Route path="/bookings"        element={<Bookings />} />
             <Route path="/favorites"            element={<Favorites />} />
             <Route path="/profile"              element={<Profile />} />

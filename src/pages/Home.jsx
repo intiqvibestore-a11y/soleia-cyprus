@@ -1,16 +1,17 @@
-import { useRef } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { Star, Heart, ChevronRight, ChevronLeft, Shield, Clock } from 'lucide-react'
 import SearchBar from '../components/SearchBar'
 import { useT } from '../context/LanguageContext'
+import { supabase } from '../utils/supabase/client'
 
-const RECOMMENDED = [
-  { id: 1, name: 'Serenity Spa & Massage', category: 'Massage Spa', location: 'Limassol, Germasogeia', rating: 5.0, reviews: 2341, featured: true,  bg: 'from-[#E8D5B7] to-[#C9A882]' },
-  { id: 2, name: 'Lumière Beauty Studio', category: 'Beauty Salon', location: 'Nicosia, City Center', rating: 4.9, reviews: 1872, featured: true,  bg: 'from-[#F2E3D9] to-[#DBBAA8]' },
-  { id: 3, name: 'Clio Hair Atelier',     category: 'Hair Salon',   location: 'Nicosia, Engomi',    rating: 5.0, reviews: 4776, featured: true,  bg: 'from-[#DDD5CC] to-[#BFB4A8]' },
-  { id: 4, name: 'Elysium Wellness',      category: 'Yoga Studio',  location: 'Limassol, Old Town', rating: 4.9, reviews: 1021, featured: true,  bg: 'from-[#D5E0D5] to-[#A8BEA8]' },
-  { id: 5, name: 'Glow Beauty Lab',       category: 'Beauty Salon', location: 'Paphos, Kato',       rating: 4.8, reviews: 1578, featured: false, bg: 'from-[#E8D9D5] to-[#C9AFA8]' },
-  { id: 6, name: 'Zen Body & Mind',       category: 'Massage Spa',  location: 'Larnaca, Marina',    rating: 4.9, reviews: 987,  featured: false, bg: 'from-[#D9E0E8] to-[#A8B5C9]' },
+const FALLBACK_GRADIENTS = [
+  'from-[#E8D5B7] to-[#C9A882]',
+  'from-[#F2E3D9] to-[#DBBAA8]',
+  'from-[#DDD5CC] to-[#BFB4A8]',
+  'from-[#D5E0D5] to-[#A8BEA8]',
+  'from-[#E8D9D5] to-[#C9AFA8]',
+  'from-[#D9E0E8] to-[#A8B5C9]',
 ]
 
 const NEW_PROVIDERS = [
@@ -23,17 +24,44 @@ const NEW_PROVIDERS = [
 
 const WHY_ICONS = [Shield, Clock, Star]
 
+// Card for real Supabase businesses
+function BusinessCard({ business, index }) {
+  const gradient = FALLBACK_GRADIENTS[index % FALLBACK_GRADIENTS.length]
+  return (
+    <Link to={`/business/${business.id}`} className="shrink-0 w-[180px] sm:w-[220px] group" style={{ textDecoration: 'none' }}>
+      <div className="relative rounded-2xl overflow-hidden mb-3" style={{ aspectRatio: '1 / 1' }}>
+        {business.cover_url ? (
+          <img
+            src={business.cover_url}
+            alt={business.name}
+            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+          />
+        ) : (
+          <div className={`w-full h-full bg-gradient-to-br ${gradient} transition-transform duration-300 group-hover:scale-105`} />
+        )}
+      </div>
+      <div className="flex items-start justify-between gap-2">
+        <h3 className="font-semibold text-[#1C1917] text-sm leading-tight">{business.name}</h3>
+        {business.rating != null && (
+          <div className="flex items-center gap-1 shrink-0">
+            <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+            <span className="text-sm font-semibold text-[#1C1917]">{Number(business.rating).toFixed(1)}</span>
+          </div>
+        )}
+      </div>
+      {business.city && <p className="text-sm text-[#78716C] mt-0.5 leading-tight">{business.city}</p>}
+      {business.category && <p className="text-sm text-[#78716C]">{business.category}</p>}
+    </Link>
+  )
+}
+
+// Card for hardcoded demo data (links to /providers/:id)
 function ProviderCard({ provider }) {
   const T = useT()
   return (
-    <Link to={`/providers/${provider.id}`} className="card-lift shrink-0 w-[180px] sm:w-[255px] group">
+    <Link to={`/providers/${provider.id}`} className="card-lift shrink-0 w-[180px] sm:w-[220px] group">
       <div className="relative rounded-2xl overflow-hidden mb-3" style={{ aspectRatio: '1 / 1' }}>
         <div className={`w-full h-full bg-gradient-to-br ${provider.bg} transition-transform duration-300 group-hover:scale-105`} />
-        {provider.featured && (
-          <span className="absolute top-3 left-3 bg-[#1C1917]/85 backdrop-blur-sm text-white text-[11px] font-medium px-2.5 py-1 rounded-full">
-            {T.home_featured}
-          </span>
-        )}
         <button
           aria-label="Save"
           onClick={e => e.preventDefault()}
@@ -55,7 +83,7 @@ function ProviderCard({ provider }) {
   )
 }
 
-function ScrollRow({ items, label }) {
+function ScrollRow({ children, label }) {
   const ref = useRef(null)
   const scroll = (dir) => { if (ref.current) ref.current.scrollBy({ left: dir * 280, behavior: 'smooth' }) }
   return (
@@ -73,7 +101,7 @@ function ScrollRow({ items, label }) {
           </div>
         </div>
         <div ref={ref} className="flex gap-4 sm:gap-5 overflow-x-auto scrollbar-hide pb-2 -mx-4 px-4 sm:mx-0 sm:px-0">
-          {items.map(p => <ProviderCard key={p.id} provider={p} />)}
+          {children}
         </div>
       </div>
     </section>
@@ -82,6 +110,14 @@ function ScrollRow({ items, label }) {
 
 export default function Home() {
   const T = useT()
+  const [businesses, setBusinesses] = useState([])
+
+  useEffect(() => {
+    supabase.from('businesses').select('*').limit(10).then(({ data }) => {
+      if (data?.length) setBusinesses(data)
+    })
+  }, [])
+
   return (
     <>
       <section>
@@ -119,20 +155,24 @@ export default function Home() {
               </Link>
             ))}
           </div>
-
-          <button className="btn-press hidden sm:flex mt-6 items-center gap-2 border border-[#E8E0D8] bg-white/80 hover:bg-white text-sm text-[#1C1917] px-5 py-2.5 rounded-full transition-all duration-200 fade-in delay-5">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12" y2="18.01"/>
-            </svg>
-            {T.home_get_app}
-          </button>
         </div>
       </section>
 
       <div className="bg-white">
-        <ScrollRow items={RECOMMENDED} label={T.home_recommended} />
+        {/* Προτεινόμενα — real Supabase data */}
+        <ScrollRow label={T.home_recommended}>
+          {businesses.map((b, i) => (
+            <BusinessCard key={b.id} business={b} index={i} />
+          ))}
+        </ScrollRow>
+
         <div className="max-w-7xl mx-auto px-5 sm:px-8"><hr className="border-[#F0EAE3]" /></div>
-        <ScrollRow items={NEW_PROVIDERS} label={T.home_new} />
+
+        {/* Νέα — hardcoded demo */}
+        <ScrollRow label={T.home_new}>
+          {NEW_PROVIDERS.map(p => <ProviderCard key={p.id} provider={p} />)}
+        </ScrollRow>
+
         <div className="max-w-7xl mx-auto px-5 sm:px-8"><hr className="border-[#F0EAE3]" /></div>
       </div>
 
