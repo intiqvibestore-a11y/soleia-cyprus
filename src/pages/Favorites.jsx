@@ -5,7 +5,7 @@ import { useT } from '../context/LanguageContext'
 export default function Favorites() {
   const T = useT()
   return (
-    <div className="min-h-screen bg-[#F5F0EB] flex flex-col items-center justify-center gap-5 px-6 text-center">
+    <div className="min-h-screen flex flex-col items-center justify-center gap-5 px-6 text-center" style={{ background: 'radial-gradient(ellipse 120% 60% at 70% 0%, #E8D5B7 0%, #F5F0EB 42%, #FDFAF7 80%)' }}>
       <div className="w-16 h-16 rounded-full bg-[#C9A882]/12 flex items-center justify-center">
         <Heart className="w-7 h-7 text-[#C9A882]" strokeWidth={1.6} />
       </div>

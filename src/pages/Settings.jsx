@@ -92,7 +92,7 @@ export default function Settings() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F5F0EB]">
+    <div className="min-h-screen" style={{ background: 'radial-gradient(ellipse 120% 60% at 70% 0%, #E8D5B7 0%, #F5F0EB 42%, #FDFAF7 80%)' }}>
 
       {/* Header */}
       <div className="flex items-center gap-3 px-5 pt-5 pb-4">

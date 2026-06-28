@@ -138,14 +138,14 @@ export default function ProfileAddress() {
     navigate('/profile/edit')
   }
 
-  if (authLoading) return <div className="min-h-screen bg-white" />
+  if (authLoading) return <div className="min-h-screen" style={{ background: 'radial-gradient(ellipse 120% 60% at 70% 0%, #E8D5B7 0%, #F5F0EB 42%, #FDFAF7 80%)' }} />
 
   const mapCenter = selected ? [selected.lat, selected.lng] : DEFAULT_CENTER
 
   // ── Screen A: Address search ─────────────────────────────────────────────────
   if (screen === 'search') {
     return (
-      <div className="min-h-screen bg-white">
+      <div className="min-h-screen" style={{ background: 'radial-gradient(ellipse 120% 60% at 70% 0%, #E8D5B7 0%, #F5F0EB 42%, #FDFAF7 80%)' }}>
         {/* Search input acts as the page header */}
         <div className="flex items-center gap-3 px-4 py-3 border-b border-[#F0EAE3]">
           <button
@@ -194,7 +194,7 @@ export default function ProfileAddress() {
 
   // ── Screen B: Map confirmation ───────────────────────────────────────────────
   return (
-    <div className="min-h-screen bg-white flex flex-col">
+    <div className="min-h-screen flex flex-col" style={{ background: 'radial-gradient(ellipse 120% 60% at 70% 0%, #E8D5B7 0%, #F5F0EB 42%, #FDFAF7 80%)' }}>
 
       {/* Header */}
       <div className="flex items-center gap-3 px-5 py-4 border-b border-[#F0EAE3] shrink-0">

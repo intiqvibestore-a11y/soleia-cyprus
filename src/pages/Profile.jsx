@@ -104,7 +104,7 @@ export default function Profile() {
   ]
 
   return (
-    <div className="min-h-screen bg-[#F5F0EB] pb-10">
+    <div className="min-h-screen pb-10" style={{ background: 'radial-gradient(ellipse 120% 60% at 70% 0%, #E8D5B7 0%, #F5F0EB 42%, #FDFAF7 80%)' }}>
 
       {/* ── Header ── */}
       <div className="flex items-center justify-between px-5 pt-6 pb-5">

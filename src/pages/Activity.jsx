@@ -91,14 +91,14 @@ export default function Activity() {
     }
   }, [directionsOpen])
 
-  if (loading) return <div className="min-h-screen bg-[#F5F0EB]" />
+  if (loading) return <div className="min-h-screen" style={{ background: 'radial-gradient(ellipse 120% 60% at 70% 0%, #E8D5B7 0%, #F5F0EB 42%, #FDFAF7 80%)' }} />
 
   const upcoming = DEMO_BOOKINGS.filter(b => b.status === 'upcoming')
   const past     = DEMO_BOOKINGS.filter(b => b.status === 'past')
   const first    = upcoming[0]
 
   return (
-    <div className="min-h-screen bg-[#F5F0EB]">
+    <div className="min-h-screen" style={{ background: 'radial-gradient(ellipse 120% 60% at 70% 0%, #E8D5B7 0%, #F5F0EB 42%, #FDFAF7 80%)' }}>
 
       {!user ? (
         /* ── Logged-out empty state ── */

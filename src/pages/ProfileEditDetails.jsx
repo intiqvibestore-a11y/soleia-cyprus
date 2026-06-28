@@ -121,7 +121,7 @@ export default function ProfileEditDetails() {
     navigate('/profile/edit')
   }
 
-  if (authLoading || loading) return <div className="min-h-screen bg-[#F5F0EB]" />
+  if (authLoading || loading) return <div className="min-h-screen" style={{ background: 'radial-gradient(ellipse 120% 60% at 70% 0%, #E8D5B7 0%, #F5F0EB 42%, #FDFAF7 80%)' }} />
 
   const inputCls = 'w-full h-[52px] px-4 border border-[#D1CAC1] rounded-xl text-[15px] text-[#1C1917] placeholder-[#B8AEA6] focus:outline-none focus:border-[#1C1917] transition-colors bg-white'
   const labelCls = 'block text-[13px] font-semibold text-[#1C1917] mb-1.5'
@@ -133,7 +133,7 @@ export default function ProfileEditDetails() {
     }`
 
   return (
-    <div className="min-h-screen bg-[#F5F0EB] pb-10">
+    <div className="min-h-screen pb-10" style={{ background: 'radial-gradient(ellipse 120% 60% at 70% 0%, #E8D5B7 0%, #F5F0EB 42%, #FDFAF7 80%)' }}>
 
       {/* Header */}
       <div className="flex items-center gap-3 px-5 pt-5 pb-5">

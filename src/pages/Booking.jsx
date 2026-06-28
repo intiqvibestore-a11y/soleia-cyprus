@@ -98,7 +98,7 @@ export default function Booking() {
   // ── Loading ────────────────────────────────────────────────────────────────
   if (loadingData) {
     return (
-      <div className="min-h-screen bg-[#F5F0EB] flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center" style={{ background: 'radial-gradient(ellipse 120% 60% at 70% 0%, #E8D5B7 0%, #F5F0EB 42%, #FDFAF7 80%)' }}>
         <div
           className="w-8 h-8 rounded-full border-2 animate-spin"
           style={{ borderColor: '#C9A882', borderTopColor: 'transparent' }}
@@ -112,7 +112,7 @@ export default function Booking() {
 
   // ── Layout ─────────────────────────────────────────────────────────────────
   return (
-    <div className="min-h-screen bg-[#F5F0EB] pb-28">
+    <div className="min-h-screen pb-28" style={{ background: 'radial-gradient(ellipse 120% 60% at 70% 0%, #E8D5B7 0%, #F5F0EB 42%, #FDFAF7 80%)' }}>
 
       {/* Header */}
       <div className="px-5 pt-5 pb-2">

@@ -38,7 +38,7 @@ export default function BusinessProfile() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#F5F0EB] flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center" style={{ background: 'radial-gradient(ellipse 120% 60% at 70% 0%, #E8D5B7 0%, #F5F0EB 42%, #FDFAF7 80%)' }}>
         <div className="w-8 h-8 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: '#C9A882', borderTopColor: 'transparent' }} />
       </div>
     )
@@ -46,7 +46,7 @@ export default function BusinessProfile() {
 
   if (!business) {
     return (
-      <div className="min-h-screen bg-[#F5F0EB] flex flex-col items-center justify-center gap-3 px-8 text-center">
+      <div className="min-h-screen flex flex-col items-center justify-center gap-3 px-8 text-center" style={{ background: 'radial-gradient(ellipse 120% 60% at 70% 0%, #E8D5B7 0%, #F5F0EB 42%, #FDFAF7 80%)' }}>
         <p className="text-[18px] font-semibold" style={{ color: '#3D2B1F' }}>Δεν βρέθηκε ο χώρος</p>
         <button onClick={() => navigate(-1)} className="text-[14px] underline cursor-pointer" style={{ color: '#C9A882', background: 'none', border: 'none' }}>
           Επιστροφή
@@ -60,7 +60,7 @@ export default function BusinessProfile() {
   const mapCenter = [lat, lng]
 
   return (
-    <div className="min-h-screen bg-[#F5F0EB] pb-28">
+    <div className="min-h-screen pb-28" style={{ background: 'radial-gradient(ellipse 120% 60% at 70% 0%, #E8D5B7 0%, #F5F0EB 42%, #FDFAF7 80%)' }}>
 
       {/* Hero */}
       <div className="relative w-full" style={{ height: 260 }}>

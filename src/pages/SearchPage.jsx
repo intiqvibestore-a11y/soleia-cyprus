@@ -65,8 +65,8 @@ export default function SearchPage() {
 
   return (
     <div
-      className="fixed inset-0 top-0 z-[350] bg-[#FDFAF7] flex flex-col"
-      style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
+      className="fixed inset-0 top-0 z-[350] flex flex-col"
+      style={{ background: 'radial-gradient(ellipse 120% 60% at 70% 0%, #E8D5B7 0%, #F5F0EB 42%, #FDFAF7 80%)', paddingBottom: 'env(safe-area-inset-bottom)' }}
     >
       {/* Header */}
       <div className="flex items-center gap-3 px-4 pt-5 pb-4 shrink-0">

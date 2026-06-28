@@ -49,7 +49,7 @@ export default function AuthCallback() {
   }, [])
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-[#FDFAF7]">
+    <div className="fixed inset-0 flex items-center justify-center" style={{ background: 'radial-gradient(ellipse 120% 60% at 70% 0%, #E8D5B7 0%, #F5F0EB 42%, #FDFAF7 80%)' }}>
       <div className="flex flex-col items-center gap-4">
         <div className="w-8 h-8 border-2 border-[#E8E0D8] border-t-[#C9A882] rounded-full animate-spin" />
         <p className="text-[14px] text-[#78716C]">Συνδέεστε…</p>

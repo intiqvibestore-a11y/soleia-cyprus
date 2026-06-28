@@ -47,7 +47,7 @@ export default function ProfileEdit() {
     if (upsertErr) console.error('Avatar upsert error:', upsertErr)
   }
 
-  if (authLoading || profileLoading) return <div className="min-h-screen bg-[#F5F0EB]" />
+  if (authLoading || profileLoading) return <div className="min-h-screen" style={{ background: 'radial-gradient(ellipse 120% 60% at 70% 0%, #E8D5B7 0%, #F5F0EB 42%, #FDFAF7 80%)' }} />
 
   // Derived values — prefer profiles table, fall back to auth metadata
   const meta = user.user_metadata || {}
@@ -80,7 +80,7 @@ export default function ProfileEdit() {
   const workAddr = profile?.addresses?.work
 
   return (
-    <div className="min-h-screen bg-[#F5F0EB] pb-10">
+    <div className="min-h-screen pb-10" style={{ background: 'radial-gradient(ellipse 120% 60% at 70% 0%, #E8D5B7 0%, #F5F0EB 42%, #FDFAF7 80%)' }}>
 
       {/* Header */}
       <div className="flex items-center gap-3 px-5 pt-5 pb-4">

@@ -45,7 +45,7 @@ export default function Messages() {
   }, [menuOpen])
 
   return (
-    <div className="min-h-screen bg-[#F5F0EB]">
+    <div className="min-h-screen" style={{ background: 'radial-gradient(ellipse 120% 60% at 70% 0%, #E8D5B7 0%, #F5F0EB 42%, #FDFAF7 80%)' }}>
 
       {/* ── Page header ── */}
       <div className="flex items-center justify-between px-4 py-3">

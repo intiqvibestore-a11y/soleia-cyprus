@@ -57,7 +57,7 @@ export default function ProviderProfile() {
   const guarantees = [T.pp_free_cancel, T.pp_instant_confirm, T.pp_secure_payment]
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen" style={{ background: 'radial-gradient(ellipse 120% 60% at 70% 0%, #E8D5B7 0%, #F5F0EB 42%, #FDFAF7 80%)' }}>
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
         <Link to="/services" className="inline-flex items-center gap-1.5 text-sm text-[#78716C] hover:text-[#1C1917] transition-colors">
           <ChevronLeft className="w-4 h-4" />
