@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ArrowLeft, Eye, EyeOff, CheckCircle2, X } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
@@ -82,7 +82,15 @@ function Sheet({ onClose, children }) {
 export default function SettingsChangePassword() {
   const navigate = useNavigate()
   const { user } = useAuth()
-  const userEmail = user?.email || ''
+  const [userEmail, setUserEmail] = useState(user?.email || '')
+
+  // Fetch authoritative email directly — covers OAuth users where user?.email may lag
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data: { user: u } }) => {
+      const email = u?.email || u?.user_metadata?.email || ''
+      if (email) setUserEmail(email)
+    })
+  }, [])
 
   const [current, setCurrent]   = useState('')
   const [next, setNext]         = useState('')
@@ -205,15 +213,15 @@ export default function SettingsChangePassword() {
         </button>
 
         {/* Forgot link */}
-        <p className="mt-5 text-[13px] leading-relaxed" style={{ color: '#78716C' }}>
+        <p className="mt-5 text-sm leading-relaxed" style={{ color: '#6B7280' }}>
           Εάν ξεχάσατε τον κωδικό πρόσβασής σας,{' '}
-          <button
+          <span
             onClick={() => setForgotOpen(true)}
-            className="cursor-pointer underline"
-            style={{ background: 'none', border: 'none', color: '#C9A882', padding: 0, fontSize: 'inherit' }}
+            className="underline cursor-pointer"
+            style={{ color: '#C9A882' }}
           >
             μπορείτε να το επαναφέρετε κάνοντας κλικ σε αυτόν τον σύνδεσμο.
-          </button>
+          </span>
         </p>
       </div>
 
