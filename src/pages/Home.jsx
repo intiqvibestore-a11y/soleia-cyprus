@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
-import { Star, Heart, ChevronRight, ChevronLeft, Shield, Clock } from 'lucide-react'
+import { Star, ChevronRight, ChevronLeft, Shield, Clock } from 'lucide-react'
 import SearchBar from '../components/SearchBar'
 import { useT } from '../context/LanguageContext'
 import { supabase } from '../utils/supabase/client'
@@ -14,17 +14,8 @@ const FALLBACK_GRADIENTS = [
   'from-[#D9E0E8] to-[#A8B5C9]',
 ]
 
-const NEW_PROVIDERS = [
-  { id: 7,  name: 'Olea Nail Studio',      category: 'Nail Salon',   location: 'Limassol, Potamos',       rating: 5.0, reviews: 12,  bg: 'from-[#EDE4D8] to-[#D4C3AE]' },
-  { id: 8,  name: 'Aphrodite Hair',        category: 'Hair Salon',   location: 'Nicosia, Makedonitissa',  rating: 4.9, reviews: 8,   bg: 'from-[#E0D5C5] to-[#C5B49A]' },
-  { id: 9,  name: 'Solstice Yoga',         category: 'Yoga Studio',  location: 'Paphos, Coral Bay',       rating: 5.0, reviews: 5,   bg: 'from-[#D8E4D8] to-[#B4CAB4]' },
-  { id: 10, name: 'Prestige Skin Clinic',  category: 'Skin Care',    location: 'Limassol, Mesa Geitonia', rating: 4.8, reviews: 21,  bg: 'from-[#ECDAD0] to-[#D4B5A5]' },
-  { id: 11, name: 'The Brow Bar',          category: 'Beauty Salon', location: 'Nicosia, Acropolis',      rating: 5.0, reviews: 17,  bg: 'from-[#E8DCE0] to-[#D0BBBF]' },
-]
-
 const WHY_ICONS = [Shield, Clock, Star]
 
-// Card for real Supabase businesses
 function BusinessCard({ business, index }) {
   const gradient = FALLBACK_GRADIENTS[index % FALLBACK_GRADIENTS.length]
   return (
@@ -55,31 +46,11 @@ function BusinessCard({ business, index }) {
   )
 }
 
-// Card for hardcoded demo data (links to /providers/:id)
-function ProviderCard({ provider }) {
-  const T = useT()
+function EmptyPlaceholder() {
   return (
-    <Link to={`/providers/${provider.id}`} className="card-lift shrink-0 w-[180px] sm:w-[220px] group">
-      <div className="relative rounded-2xl overflow-hidden mb-3" style={{ aspectRatio: '1 / 1' }}>
-        <div className={`w-full h-full bg-gradient-to-br ${provider.bg} transition-transform duration-300 group-hover:scale-105`} />
-        <button
-          aria-label="Save"
-          onClick={e => e.preventDefault()}
-          className="absolute top-3 right-3 w-8 h-8 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center cursor-pointer hover:bg-white transition-colors duration-150"
-        >
-          <Heart className="w-4 h-4 text-[#78716C]" />
-        </button>
-      </div>
-      <div className="flex items-start justify-between gap-2">
-        <h3 className="font-semibold text-[#1C1917] text-sm leading-tight">{provider.name}</h3>
-        <div className="flex items-center gap-1 shrink-0">
-          <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
-          <span className="text-sm font-semibold text-[#1C1917]">{provider.rating.toFixed(1)}</span>
-        </div>
-      </div>
-      <p className="text-sm text-[#78716C] mt-0.5 leading-tight">{provider.location}</p>
-      <p className="text-sm text-[#78716C]">{provider.category} &middot; {provider.reviews.toLocaleString()} {T.home_reviews}</p>
-    </Link>
+    <div className="shrink-0 flex items-center justify-center rounded-2xl px-6 py-8" style={{ minWidth: 220, background: '#F0EBE5' }}>
+      <p className="text-[13px] text-center" style={{ color: '#A8A29E' }}>Σύντομα διαθέσιμα καταστήματα</p>
+    </div>
   )
 }
 
@@ -113,9 +84,14 @@ export default function Home() {
   const [businesses, setBusinesses] = useState([])
 
   useEffect(() => {
-    supabase.from('businesses').select('*').limit(10).then(({ data }) => {
-      if (data?.length) setBusinesses(data)
-    })
+    supabase
+      .from('businesses')
+      .select('*')
+      .limit(10)
+      .then(({ data, error }) => {
+        console.log('businesses:', data, error)
+        if (data?.length) setBusinesses(data)
+      })
   }, [])
 
   return (
@@ -159,18 +135,22 @@ export default function Home() {
       </section>
 
       <div className="bg-white">
-        {/* Προτεινόμενα — real Supabase data */}
+        {/* Προτεινόμενα */}
         <ScrollRow label={T.home_recommended}>
-          {businesses.map((b, i) => (
-            <BusinessCard key={b.id} business={b} index={i} />
-          ))}
+          {businesses.length > 0
+            ? businesses.map((b, i) => <BusinessCard key={b.id} business={b} index={i} />)
+            : <EmptyPlaceholder />
+          }
         </ScrollRow>
 
         <div className="max-w-7xl mx-auto px-5 sm:px-8"><hr className="border-[#F0EAE3]" /></div>
 
-        {/* Νέα — hardcoded demo */}
+        {/* Νέα στη Soleia */}
         <ScrollRow label={T.home_new}>
-          {NEW_PROVIDERS.map(p => <ProviderCard key={p.id} provider={p} />)}
+          {businesses.length > 0
+            ? businesses.map((b, i) => <BusinessCard key={b.id} business={b} index={i + 3} />)
+            : <EmptyPlaceholder />
+          }
         </ScrollRow>
 
         <div className="max-w-7xl mx-auto px-5 sm:px-8"><hr className="border-[#F0EAE3]" /></div>
