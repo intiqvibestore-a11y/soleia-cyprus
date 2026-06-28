@@ -19,8 +19,13 @@ const WHY_ICONS = [Shield, Clock, Star]
 function BusinessCard({ business, index }) {
   const gradient = FALLBACK_GRADIENTS[index % FALLBACK_GRADIENTS.length]
   return (
-    <Link to={`/business/${business.id}`} className="shrink-0 w-[180px] sm:w-[220px] group" style={{ textDecoration: 'none' }}>
-      <div className="relative rounded-2xl overflow-hidden mb-3" style={{ aspectRatio: '1 / 1' }}>
+    <Link
+      to={`/business/${business.id}`}
+      className="shrink-0 w-[220px] sm:w-[260px] group rounded-xl overflow-hidden bg-white"
+      style={{ textDecoration: 'none', boxShadow: '0 1px 6px rgba(28,25,23,0.09)' }}
+    >
+      {/* Landscape image */}
+      <div className="relative w-full overflow-hidden" style={{ aspectRatio: '4 / 3' }}>
         {business.cover_url ? (
           <img
             src={business.cover_url}
@@ -31,17 +36,22 @@ function BusinessCard({ business, index }) {
           <div className={`w-full h-full bg-gradient-to-br ${gradient} transition-transform duration-300 group-hover:scale-105`} />
         )}
       </div>
-      <div className="flex items-start justify-between gap-2">
-        <h3 className="font-semibold text-[#1C1917] text-sm leading-tight">{business.name}</h3>
-        {business.rating != null && (
-          <div className="flex items-center gap-1 shrink-0">
-            <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
-            <span className="text-sm font-semibold text-[#1C1917]">{Number(business.rating).toFixed(1)}</span>
-          </div>
-        )}
+
+      {/* Info */}
+      <div className="px-3 py-2.5">
+        <div className="flex items-start justify-between gap-2">
+          <h3 className="font-bold text-base leading-tight" style={{ color: '#3D2B1F' }}>{business.name}</h3>
+          {business.rating != null && (
+            <div className="flex items-center gap-1 shrink-0 mt-0.5">
+              <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+              <span className="text-sm font-semibold" style={{ color: '#1C1917' }}>{Number(business.rating).toFixed(1)}</span>
+            </div>
+          )}
+        </div>
+        <p className="text-sm mt-0.5" style={{ color: '#6B7280' }}>
+          {[business.city, business.category].filter(Boolean).join(' · ')}
+        </p>
       </div>
-      {business.city && <p className="text-sm text-[#78716C] mt-0.5 leading-tight">{business.city}</p>}
-      {business.category && <p className="text-sm text-[#78716C]">{business.category}</p>}
     </Link>
   )
 }
