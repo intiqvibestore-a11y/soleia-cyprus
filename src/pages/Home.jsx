@@ -21,11 +21,11 @@ function BusinessCard({ business, index }) {
   return (
     <Link
       to={`/business/${business.id}`}
-      className="shrink-0 w-[220px] sm:w-[260px] group rounded-xl overflow-hidden bg-white"
-      style={{ textDecoration: 'none', boxShadow: '0 1px 6px rgba(28,25,23,0.09)' }}
+      className="shrink-0 w-[240px] sm:w-[280px] group"
+      style={{ textDecoration: 'none' }}
     >
-      {/* Landscape image */}
-      <div className="relative w-full overflow-hidden" style={{ aspectRatio: '4 / 3' }}>
+      {/* Image — standalone, no wrapping card */}
+      <div className="relative w-full rounded-xl overflow-hidden" style={{ aspectRatio: '3 / 2' }}>
         {business.cover_url ? (
           <img
             src={business.cover_url}
@@ -37,8 +37,8 @@ function BusinessCard({ business, index }) {
         )}
       </div>
 
-      {/* Info */}
-      <div className="px-3 py-2.5">
+      {/* Text — below image, no background, no border */}
+      <div className="pt-2.5 px-0.5">
         <div className="flex items-start justify-between gap-2">
           <h3 className="font-bold text-base leading-tight" style={{ color: '#3D2B1F' }}>{business.name}</h3>
           {business.rating != null && (
