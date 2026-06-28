@@ -1,9 +1,22 @@
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ArrowLeft, ChevronDown, Paperclip, X, CheckCircle2 } from 'lucide-react'
+import { ArrowLeft, ChevronDown, Paperclip, X, CheckCircle2, AlertCircle } from 'lucide-react'
+import emailjs from '@emailjs/browser'
 import { supabase } from '../utils/supabase/client'
 
-const SUPPORT_EMAIL = 'intiqvibestore@gmail.com'
+const EJS_SERVICE  = 'service_upa5skh'
+const EJS_TEMPLATE = 'template_swsfu0f'
+const EJS_KEY      = '9yltr7c1VxXHwhZAs'
+const TO_EMAIL     = 'intiqvibestore@gmail.com'
+
+function sendEmail({ from_email, subject, reason, message }) {
+  return emailjs.send(
+    EJS_SERVICE,
+    EJS_TEMPLATE,
+    { from_email, subject, reason, message, to_email: TO_EMAIL },
+    EJS_KEY
+  )
+}
 
 // ─── Shared primitives ─────────────────────────────────────────────────────────
 
@@ -130,14 +143,15 @@ function FileF({ file, onChange }) {
   )
 }
 
-function SubmitBtn({ onClick }) {
+function SubmitBtn({ onClick, loading }) {
   return (
     <button
       onClick={onClick}
+      disabled={loading}
       className="w-full py-[15px] rounded-full font-semibold text-[16px] cursor-pointer mt-1"
-      style={{ background: '#1C1917', color: 'white', border: 'none' }}
+      style={{ background: '#1C1917', color: 'white', border: 'none', opacity: loading ? 0.7 : 1 }}
     >
-      Αποστολή email
+      {loading ? 'Αποστολή...' : 'Αποστολή email'}
     </button>
   )
 }
@@ -153,33 +167,39 @@ const REASONS_1 = [
   'Άλλα ερωτήματα',
 ]
 
-function Form1({ userEmail, onSuccess }) {
-  const [email,  setEmail]  = useState(userEmail)
-  const [reason, setReason] = useState('')
-  const [desc,   setDesc]   = useState('')
-  const [file,   setFile]   = useState(null)
-  const [errors, setErrors] = useState({})
+function Form1({ userEmail, topic, onSuccess, onError }) {
+  const [email,   setEmail]   = useState(userEmail)
+  const [reason,  setReason]  = useState('')
+  const [desc,    setDesc]    = useState('')
+  const [file,    setFile]    = useState(null)
+  const [errors,  setErrors]  = useState({})
+  const [loading, setLoading] = useState(false)
 
   useEffect(() => { setEmail(userEmail) }, [userEmail])
 
   const validate = () => {
     const e = {}
-    if (!email.trim())  e.email  = 'Το email είναι υποχρεωτικό'
-    if (!reason)        e.reason = 'Επιλέξτε λόγο επικοινωνίας'
-    if (!desc.trim())   e.desc   = 'Η περιγραφή είναι υποχρεωτική'
+    if (!email.trim()) e.email  = 'Το email είναι υποχρεωτικό'
+    if (!reason)       e.reason = 'Επιλέξτε λόγο επικοινωνίας'
+    if (!desc.trim())  e.desc   = 'Η περιγραφή είναι υποχρεωτική'
     setErrors(e)
     return !Object.keys(e).length
   }
 
   const handleSubmit = () => {
     if (!validate()) return
-    const subject = encodeURIComponent(`[Soleia] Υποστήριξη Λογαριασμού — ${reason}`)
-    const body = encodeURIComponent(
-      `Email: ${email}\nΛόγος: ${reason}\n\nΠεριγραφή:\n${desc}` +
-      (file ? `\n\nΣυνημμένο: ${file.name}` : '')
-    )
-    window.location.href = `mailto:${SUPPORT_EMAIL}?subject=${subject}&body=${body}`
-    onSuccess()
+    setLoading(true)
+    const message = desc + (file ? `\n\nΣυνημμένο: ${file.name}` : '')
+    sendEmail({ from_email: email, subject: topic, reason, message })
+      .then(() => {
+        setLoading(false)
+        setEmail(userEmail); setReason(''); setDesc(''); setFile(null); setErrors({})
+        onSuccess()
+      })
+      .catch(() => {
+        setLoading(false)
+        onError()
+      })
   }
 
   return (
@@ -188,7 +208,7 @@ function Form1({ userEmail, onSuccess }) {
       <SelectF label="Λόγος επικοινωνίας με το τμήμα υποστήριξης" value={reason} onChange={setReason} options={REASONS_1} placeholder="Επιλέξτε λόγο" error={errors.reason} />
       <TextF label="Περιγράψτε τι χρειάζεστε" value={desc} onChange={setDesc} maxLength={2000} placeholder="Γράψτε εδώ..." error={errors.desc} />
       <FileF file={file} onChange={setFile} />
-      <SubmitBtn onClick={handleSubmit} />
+      <SubmitBtn onClick={handleSubmit} loading={loading} />
     </div>
   )
 }
@@ -204,7 +224,7 @@ const BUSINESS_TYPES = [
 ]
 const TEAM_SIZES = ['Μόνο εγώ', '2-5', '6-10', '11+']
 
-function Form2({ userEmail, onSuccess }) {
+function Form2({ userEmail, topic, onSuccess, onError }) {
   const [email,    setEmail]    = useState(userEmail)
   const [fullName, setFullName] = useState('')
   const [phone,    setPhone]    = useState('')
@@ -213,6 +233,7 @@ function Form2({ userEmail, onSuccess }) {
   const [teamSize, setTeamSize] = useState('')
   const [notes,    setNotes]    = useState('')
   const [errors,   setErrors]   = useState({})
+  const [loading,  setLoading]  = useState(false)
 
   useEffect(() => { setEmail(userEmail) }, [userEmail])
 
@@ -231,13 +252,21 @@ function Form2({ userEmail, onSuccess }) {
 
   const handleSubmit = () => {
     if (!validate()) return
-    const subject = encodeURIComponent(`[Soleia] Ενδιαφέρον Επιχείρησης — ${bizName}`)
-    const body = encodeURIComponent(
-      `Email: ${email}\nΟνοματεπώνυμο: ${fullName}\nΧώρα: Κύπρος\nΤηλέφωνο: +357${phone}\n` +
-      `Επιχείρηση: ${bizName}\nΤύπος: ${bizType}\nΜέγεθος ομάδας: ${teamSize}\n\nΕρωτήματα:\n${notes}`
-    )
-    window.location.href = `mailto:${SUPPORT_EMAIL}?subject=${subject}&body=${body}`
-    onSuccess()
+    setLoading(true)
+    const message =
+      `Ονοματεπώνυμο: ${fullName}\nΤηλέφωνο: +357${phone}\nΧώρα: Κύπρος\n` +
+      `Επιχείρηση: ${bizName}\nΜέγεθος ομάδας: ${teamSize}\n\nΕρωτήματα:\n${notes}`
+    sendEmail({ from_email: email, subject: topic, reason: bizType, message })
+      .then(() => {
+        setLoading(false)
+        setEmail(userEmail); setFullName(''); setPhone(''); setBizName('')
+        setBizType(''); setTeamSize(''); setNotes(''); setErrors({})
+        onSuccess()
+      })
+      .catch(() => {
+        setLoading(false)
+        onError()
+      })
   }
 
   return (
@@ -271,12 +300,7 @@ function Form2({ userEmail, onSuccess }) {
             onChange={e => setPhone(e.target.value)}
             placeholder="96 000 000"
             className="flex-1 h-[52px] px-4 rounded-xl placeholder-[#B8AEA6] focus:outline-none transition-colors"
-            style={{
-              border: `1.5px solid ${errors.phone ? '#EF4444' : '#D1CAC1'}`,
-              background: 'white',
-              color: '#1C1917',
-              fontSize: '16px',
-            }}
+            style={{ border: `1.5px solid ${errors.phone ? '#EF4444' : '#D1CAC1'}`, background: 'white', color: '#1C1917', fontSize: '16px' }}
           />
         </div>
         <FieldErr msg={errors.phone} />
@@ -289,7 +313,7 @@ function Form2({ userEmail, onSuccess }) {
         label="Υπάρχει κάτι συγκεκριμένο που θέλετε να μάθετε για το Soleia;"
         value={notes} onChange={setNotes} maxLength={500} placeholder="Γράψτε εδώ..." error={errors.notes}
       />
-      <SubmitBtn onClick={handleSubmit} />
+      <SubmitBtn onClick={handleSubmit} loading={loading} />
     </div>
   )
 }
@@ -305,12 +329,13 @@ const REASONS_3 = [
   'Άλλο',
 ]
 
-function Form3({ userEmail, onSuccess }) {
-  const [email,  setEmail]  = useState(userEmail)
-  const [reason, setReason] = useState('')
-  const [desc,   setDesc]   = useState('')
-  const [file,   setFile]   = useState(null)
-  const [errors, setErrors] = useState({})
+function Form3({ userEmail, topic, onSuccess, onError }) {
+  const [email,   setEmail]   = useState(userEmail)
+  const [reason,  setReason]  = useState('')
+  const [desc,    setDesc]    = useState('')
+  const [file,    setFile]    = useState(null)
+  const [errors,  setErrors]  = useState({})
+  const [loading, setLoading] = useState(false)
 
   useEffect(() => { setEmail(userEmail) }, [userEmail])
 
@@ -325,13 +350,18 @@ function Form3({ userEmail, onSuccess }) {
 
   const handleSubmit = () => {
     if (!validate()) return
-    const subject = encodeURIComponent(`[Soleia] Υποστήριξη Κράτησης — ${reason}`)
-    const body = encodeURIComponent(
-      `Email: ${email}\nΛόγος: ${reason}\n\nΠεριγραφή:\n${desc}` +
-      (file ? `\n\nΣυνημμένο: ${file.name}` : '')
-    )
-    window.location.href = `mailto:${SUPPORT_EMAIL}?subject=${subject}&body=${body}`
-    onSuccess()
+    setLoading(true)
+    const message = desc + (file ? `\n\nΣυνημμένο: ${file.name}` : '')
+    sendEmail({ from_email: email, subject: topic, reason, message })
+      .then(() => {
+        setLoading(false)
+        setEmail(userEmail); setReason(''); setDesc(''); setFile(null); setErrors({})
+        onSuccess()
+      })
+      .catch(() => {
+        setLoading(false)
+        onError()
+      })
   }
 
   return (
@@ -343,7 +373,7 @@ function Form3({ userEmail, onSuccess }) {
         value={desc} onChange={setDesc} maxLength={2000} placeholder="Γράψτε εδώ..." error={errors.desc}
       />
       <FileF file={file} onChange={setFile} />
-      <SubmitBtn onClick={handleSubmit} />
+      <SubmitBtn onClick={handleSubmit} loading={loading} />
     </div>
   )
 }
@@ -360,8 +390,7 @@ export default function Support() {
   const navigate = useNavigate()
   const [userEmail, setUserEmail] = useState('')
   const [topic, setTopic]         = useState('')
-  const [submitted, setSubmitted] = useState(false)
-  const [topicError, setTopicError] = useState('')
+  const [toast, setToast]         = useState(null) // { type: 'success'|'error', msg: string }
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => {
@@ -370,28 +399,28 @@ export default function Support() {
     })
   }, [])
 
-  const handleTopicChange = (val) => {
-    setTopic(val)
-    setTopicError('')
-    setSubmitted(false)
+  const showToast = (type, msg) => {
+    setToast({ type, msg })
+    setTimeout(() => setToast(null), 4000)
   }
 
-  const handleSuccess = () => {
-    setSubmitted(true)
-    setTimeout(() => setSubmitted(false), 4000)
-  }
+  const handleSuccess = () => showToast('success', 'Το email σας στάλθηκε επιτυχώς!')
+  const handleError   = () => showToast('error',   'Σφάλμα αποστολής. Δοκιμάστε ξανά.')
 
   return (
     <div className="min-h-screen bg-[#F5F0EB] pt-[62px] pb-16">
 
-      {/* Success toast */}
-      {submitted && (
+      {/* Toast */}
+      {toast && (
         <div
           className="fixed top-[78px] left-4 right-4 z-[600] flex items-center gap-3 px-4 py-3 rounded-2xl"
           style={{ background: '#1C1917', boxShadow: '0 4px 20px rgba(0,0,0,0.25)' }}
         >
-          <CheckCircle2 className="w-5 h-5 shrink-0" style={{ color: '#C9A882' }} strokeWidth={2} />
-          <span className="text-[14px] font-medium text-white">Το email σας στάλθηκε επιτυχώς!</span>
+          {toast.type === 'success'
+            ? <CheckCircle2 className="w-5 h-5 shrink-0" style={{ color: '#C9A882' }} strokeWidth={2} />
+            : <AlertCircle  className="w-5 h-5 shrink-0" style={{ color: '#EF4444' }} strokeWidth={2} />
+          }
+          <span className="text-[14px] font-medium text-white">{toast.msg}</span>
         </div>
       )}
 
@@ -416,19 +445,19 @@ export default function Support() {
         <SelectF
           label="Πώς μπορούμε να σας βοηθήσουμε;"
           value={topic}
-          onChange={handleTopicChange}
+          onChange={val => { setTopic(val); setToast(null) }}
           options={MAIN_OPTIONS}
           placeholder="Επιλέξτε θέμα"
-          error={topicError}
+          error=""
         />
 
-        {/* Divider + conditional form */}
+        {/* Conditional form */}
         {topic && (
           <>
             <div className="h-px" style={{ background: '#E8E0D8' }} />
-            {topic === MAIN_OPTIONS[0] && <Form1 userEmail={userEmail} onSuccess={handleSuccess} />}
-            {topic === MAIN_OPTIONS[1] && <Form2 userEmail={userEmail} onSuccess={handleSuccess} />}
-            {topic === MAIN_OPTIONS[2] && <Form3 userEmail={userEmail} onSuccess={handleSuccess} />}
+            {topic === MAIN_OPTIONS[0] && <Form1 userEmail={userEmail} topic={topic} onSuccess={handleSuccess} onError={handleError} />}
+            {topic === MAIN_OPTIONS[1] && <Form2 userEmail={userEmail} topic={topic} onSuccess={handleSuccess} onError={handleError} />}
+            {topic === MAIN_OPTIONS[2] && <Form3 userEmail={userEmail} topic={topic} onSuccess={handleSuccess} onError={handleError} />}
           </>
         )}
 
