@@ -116,21 +116,6 @@ export default function Home() {
 
   return (
     <div style={{ background: 'radial-gradient(ellipse 120% 60% at 70% 0%, #E8D5B7 0%, #F5F0EB 42%, #FDFAF7 80%)' }}>
-      {/* Location bar */}
-      <div className="px-5 py-3 border-b border-[#F0EAE3]">
-        <button
-          onClick={() => setLocModalOpen(true)}
-          className="flex items-center gap-1.5 cursor-pointer"
-          style={{ background: 'none', border: 'none', padding: 0 }}
-        >
-          <MapPin className="w-4 h-4 shrink-0" style={{ color: '#C9A882' }} strokeWidth={1.7} />
-          <span className="text-[14px] font-semibold" style={{ color: '#1C1917' }}>
-            {selectedLocation?.label || 'Τρέχουσα τοποθεσία'}
-          </span>
-          <ChevronDown className="w-4 h-4" style={{ color: '#78716C' }} strokeWidth={1.7} />
-        </button>
-      </div>
-
       {locModalOpen && (
         <LocationModal
           onClose={() => setLocModalOpen(false)}
@@ -142,15 +127,20 @@ export default function Home() {
         <div
           className="relative flex flex-col items-center justify-center text-center px-4 sm:px-5 py-12 sm:py-24"
         >
-          <h1
-            className="font-display font-medium text-4xl sm:text-5xl lg:text-[58px] text-[#1C1917] mb-4 leading-tight max-w-2xl fade-up delay-0"
-            style={{ letterSpacing: '-0.02em' }}
-          >
-            {T.home_hero_title}
-          </h1>
-          <p className="text-[#78716C] text-base sm:text-lg mb-8 max-w-xl leading-relaxed fade-up delay-1">
-            {T.home_hero_sub}
-          </p>
+          {/* Location picker — left-aligned above search box */}
+          <div className="w-full mb-5">
+            <button
+              onClick={() => setLocModalOpen(true)}
+              className="w-full flex items-center gap-2 cursor-pointer"
+              style={{ background: 'none', border: 'none', padding: 0 }}
+            >
+              <MapPin className="w-4 h-4 shrink-0" style={{ color: '#1C1917' }} strokeWidth={2} />
+              <span className="text-[15px] font-semibold flex-1 text-left" style={{ color: '#1C1917' }}>
+                {selectedLocation?.label || 'Τρέχουσα τοποθεσία'}
+              </span>
+              <ChevronDown className="w-4 h-4 shrink-0" style={{ color: '#78716C' }} strokeWidth={1.7} />
+            </button>
+          </div>
 
           <div className="w-full fade-up delay-2 relative z-[100]">
             <SearchBar />
