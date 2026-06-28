@@ -162,7 +162,7 @@ export default function Wallet() {
         className="px-5 pb-12"
         style={{
           background: 'linear-gradient(135deg, #C9A96E 0%, #E8D5B0 50%, #F5ECD7 100%)',
-          paddingTop: 'calc(62px + 20px)',
+          paddingTop: '20px',
         }}
       >
         <button

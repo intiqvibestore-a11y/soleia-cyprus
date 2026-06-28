@@ -191,7 +191,7 @@ export default function SettingsSocial() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F5F0EB] pt-[62px]">
+    <div className="min-h-screen bg-[#F5F0EB]">
 
       {/* Header */}
       <div className="px-5 pt-4 pb-3">

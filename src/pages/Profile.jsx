@@ -104,7 +104,7 @@ export default function Profile() {
   ]
 
   return (
-    <div className="min-h-screen bg-[#F5F0EB] pt-[62px] pb-10">
+    <div className="min-h-screen bg-[#F5F0EB] pb-10">
 
       {/* ── Header ── */}
       <div className="flex items-center justify-between px-5 pt-6 pb-5">

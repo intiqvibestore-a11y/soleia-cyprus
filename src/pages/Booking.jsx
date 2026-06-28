@@ -66,7 +66,7 @@ export default function Booking() {
 
   if (submitted) {
     return (
-      <div className="pt-16 min-h-screen bg-gradient-to-br from-[#F5F0EB] to-white flex items-center justify-center px-4">
+      <div className="min-h-screen bg-gradient-to-br from-[#F5F0EB] to-white flex items-center justify-center px-4">
         <div className="text-center max-w-md">
           <div className="w-20 h-20 bg-[#F5F0EB] rounded-full flex items-center justify-center mx-auto mb-6">
             <Check className="w-10 h-10 text-[#C9A882]" strokeWidth={2.5} />
@@ -107,7 +107,7 @@ export default function Booking() {
   }
 
   return (
-    <div className="pt-16 min-h-screen bg-[#F5F0EB]">
+    <div className="min-h-screen bg-[#F5F0EB]">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <Link to={`/providers/${serviceId}`} className="inline-flex items-center gap-1.5 text-sm text-[#78716C] hover:text-[#1C1917] transition-colors mb-6">
           <ChevronLeft className="w-4 h-4" />{T.book_back_profile}

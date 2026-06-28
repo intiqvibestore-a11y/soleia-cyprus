@@ -57,7 +57,7 @@ export default function ProviderProfile() {
   const guarantees = [T.pp_free_cancel, T.pp_instant_confirm, T.pp_secure_payment]
 
   return (
-    <div className="pt-16 min-h-screen bg-white">
+    <div className="min-h-screen bg-white">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
         <Link to="/services" className="inline-flex items-center gap-1.5 text-sm text-[#78716C] hover:text-[#1C1917] transition-colors">
           <ChevronLeft className="w-4 h-4" />

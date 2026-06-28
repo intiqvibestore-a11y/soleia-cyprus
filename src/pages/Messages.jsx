@@ -45,7 +45,7 @@ export default function Messages() {
   }, [menuOpen])
 
   return (
-    <div className="min-h-screen bg-[#F5F0EB] pt-[62px]">
+    <div className="min-h-screen bg-[#F5F0EB]">
 
       {/* ── Page header ── */}
       <div className="flex items-center justify-between px-4 py-3">

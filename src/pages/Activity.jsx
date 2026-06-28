@@ -98,7 +98,7 @@ export default function Activity() {
   const first    = upcoming[0]
 
   return (
-    <div className="min-h-screen bg-[#F5F0EB] pt-[62px]">
+    <div className="min-h-screen bg-[#F5F0EB]">
 
       {!user ? (
         /* ── Logged-out empty state ── */

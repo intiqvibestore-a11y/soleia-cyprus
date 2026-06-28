@@ -92,7 +92,7 @@ export default function Settings() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F5F0EB] pt-[62px]">
+    <div className="min-h-screen bg-[#F5F0EB]">
 
       {/* Header */}
       <div className="flex items-center gap-3 px-5 pt-5 pb-4">

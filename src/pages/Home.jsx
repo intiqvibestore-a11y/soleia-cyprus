@@ -84,7 +84,7 @@ export default function Home() {
   const T = useT()
   return (
     <>
-      <section className="pt-[62px]">
+      <section>
         <div
           className="relative flex flex-col items-center justify-center text-center px-4 sm:px-5 py-12 sm:py-24"
           style={{ background: 'radial-gradient(ellipse 80% 100% at 75% 40%, #E8D5B7 0%, #F5F0EB 45%, #FDFAF7 100%)' }}

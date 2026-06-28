@@ -145,7 +145,7 @@ export default function ProfileAddress() {
   // ── Screen A: Address search ─────────────────────────────────────────────────
   if (screen === 'search') {
     return (
-      <div className="min-h-screen bg-white pt-[62px]">
+      <div className="min-h-screen bg-white">
         {/* Search input acts as the page header */}
         <div className="flex items-center gap-3 px-4 py-3 border-b border-[#F0EAE3]">
           <button
@@ -194,7 +194,7 @@ export default function ProfileAddress() {
 
   // ── Screen B: Map confirmation ───────────────────────────────────────────────
   return (
-    <div className="min-h-screen bg-white pt-[62px] flex flex-col">
+    <div className="min-h-screen bg-white flex flex-col">
 
       {/* Header */}
       <div className="flex items-center gap-3 px-5 py-4 border-b border-[#F0EAE3] shrink-0">

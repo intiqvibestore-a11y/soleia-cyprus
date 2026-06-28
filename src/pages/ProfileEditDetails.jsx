@@ -133,7 +133,7 @@ export default function ProfileEditDetails() {
     }`
 
   return (
-    <div className="min-h-screen bg-[#F5F0EB] pt-[62px] pb-10">
+    <div className="min-h-screen bg-[#F5F0EB] pb-10">
 
       {/* Header */}
       <div className="flex items-center gap-3 px-5 pt-5 pb-5">

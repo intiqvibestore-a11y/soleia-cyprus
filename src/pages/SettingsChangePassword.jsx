@@ -134,7 +134,7 @@ export default function SettingsChangePassword() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F5F0EB] pt-[62px]">
+    <div className="min-h-screen bg-[#F5F0EB]">
 
       {/* Success toast */}
       {success && (

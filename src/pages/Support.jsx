@@ -416,7 +416,7 @@ export default function Support() {
   const handleError   = () => showToast('error',   'Σφάλμα αποστολής. Δοκιμάστε ξανά.')
 
   return (
-    <div className="min-h-screen bg-[#F5F0EB] pt-[62px] pb-16">
+    <div className="min-h-screen bg-[#F5F0EB] pb-16">
 
       {/* Toast */}
       {toast && (

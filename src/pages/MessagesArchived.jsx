@@ -26,7 +26,7 @@ export default function MessagesArchived() {
   const navigate = useNavigate()
 
   return (
-    <div className="min-h-screen bg-[#F5F0EB] pt-[62px]">
+    <div className="min-h-screen bg-[#F5F0EB]">
 
       {/* ── Page header ── */}
       <div className="flex items-center px-4 py-3">

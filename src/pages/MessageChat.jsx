@@ -77,7 +77,7 @@ export default function MessageChat() {
   }, [])
 
   return (
-    <div className="min-h-screen bg-[#F5F0EB] pt-[62px] flex flex-col">
+    <div className="min-h-screen bg-[#F5F0EB] flex flex-col">
 
       {/* ── Sticky header ── */}
       <div

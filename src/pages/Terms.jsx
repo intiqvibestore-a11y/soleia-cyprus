@@ -31,7 +31,7 @@ export default function Terms() {
   const navigate = useNavigate()
 
   return (
-    <div className="min-h-screen bg-[#F5F0EB] pt-[62px] pb-16">
+    <div className="min-h-screen bg-[#F5F0EB] pb-16">
 
       {/* Header */}
       <div className="px-5 pt-4 pb-2">

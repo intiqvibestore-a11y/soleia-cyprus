@@ -266,7 +266,7 @@ export default function BookingDetail() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F5F0EB] pt-[62px]">
+    <div className="min-h-screen bg-[#F5F0EB]">
 
       {/* ── Hero ── */}
       <div className="relative w-full" style={{ height: 260 }}>
