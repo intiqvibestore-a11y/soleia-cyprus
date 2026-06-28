@@ -1,7 +1,6 @@
 import { Routes, Route, useLocation } from 'react-router-dom'
 import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
-import Navbar from './components/Navbar'
 import Cursor from './components/Cursor'
 import BottomNav from './components/BottomNav'
 import SearchModal from './components/SearchModal'
@@ -124,7 +123,6 @@ function AppContent() {
       <Cursor />
       <div className="flex flex-col min-h-screen">
         <ScrollToTop />
-        <Navbar />
         {/* pb-24 so content never hides behind the fixed BottomNav */}
         <main className="flex-1 pb-24">
           <Routes>
