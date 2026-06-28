@@ -9,18 +9,17 @@ const EJS_TEMPLATE = 'template_z3ob4x7'
 const EJS_KEY      = '9yltr7c1VxXHwhZAs'
 
 function sendEmail({ from_email, subject, reason, message, name }) {
-  return emailjs.send(
-    EJS_SERVICE,
-    EJS_TEMPLATE,
-    {
-      from_email,
-      subject,
-      reason: reason || 'Δεν επιλέχθηκε',
-      message,
-      name: name || from_email,
-    },
-    EJS_KEY
-  )
+  const params = {
+    from_email,
+    subject,
+    reason: reason || 'Δεν επιλέχθηκε',
+    message,
+    name: name || from_email,
+  }
+  console.log('Sending email with:', { service: EJS_SERVICE, template: EJS_TEMPLATE, params })
+  return emailjs.send(EJS_SERVICE, EJS_TEMPLATE, params, EJS_KEY)
+    .then(result => { console.log('EmailJS success:', result); return result })
+    .catch(error  => { console.log('EmailJS error:',   error);  throw error  })
 }
 
 // ─── Shared primitives ─────────────────────────────────────────────────────────
@@ -399,6 +398,7 @@ export default function Support() {
   const [toast, setToast]         = useState(null) // { type: 'success'|'error', msg: string }
 
   useEffect(() => {
+    emailjs.init(EJS_KEY)
     supabase.auth.getUser().then(({ data: { user } }) => {
       const e = user?.email || user?.user_metadata?.email || ''
       if (e) setUserEmail(e)
