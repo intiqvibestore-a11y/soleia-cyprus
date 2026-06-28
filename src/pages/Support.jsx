@@ -4,7 +4,7 @@ import { ArrowLeft, ChevronDown, Paperclip, X, CheckCircle2, AlertCircle } from 
 import emailjs from '@emailjs/browser'
 import { supabase } from '../utils/supabase/client'
 
-const EJS_SERVICE  = 'service_upa5skh'
+const EJS_SERVICE  = 'service_cdlt30a'
 const EJS_TEMPLATE = 'template_z3ob4x7'
 const EJS_KEY      = '9yltr7c1VxXHwhZAs'
 
