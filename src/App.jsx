@@ -35,6 +35,7 @@ import SettingsSocial from './pages/SettingsSocial'
 import Privacy from './pages/Privacy'
 import Terms from './pages/Terms'
 import TermsServices from './pages/TermsServices'
+import Support from './pages/Support'
 import { SearchProvider, useSearchModal } from './context/SearchContext'
 
 // ── Splash screen ─────────────────────────────────────────────────────────────
@@ -156,6 +157,7 @@ function AppContent() {
             <Route path="/privacy"                     element={<Privacy />} />
             <Route path="/terms"                       element={<Terms />} />
             <Route path="/terms/services"              element={<TermsServices />} />
+            <Route path="/support"                     element={<Support />} />
           </Routes>
         </main>
         <Footer />

@@ -99,7 +99,7 @@ export default function Profile() {
   ]
 
   const section2 = [
-    { icon: LifeBuoy, label: 'Υποστήριξη' },
+    { icon: LifeBuoy, label: 'Υποστήριξη', onClick: () => navigate('/support') },
     { icon: Globe,    label: 'Ελληνικά (Κύπρος)' },
   ]
 
