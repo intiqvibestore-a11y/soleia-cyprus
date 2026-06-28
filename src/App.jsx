@@ -2,7 +2,6 @@ import { Routes, Route, useLocation } from 'react-router-dom'
 import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import Navbar from './components/Navbar'
-import Footer from './components/Footer'
 import Cursor from './components/Cursor'
 import BottomNav from './components/BottomNav'
 import SearchModal from './components/SearchModal'
@@ -160,7 +159,6 @@ function AppContent() {
             <Route path="/support"                     element={<Support />} />
           </Routes>
         </main>
-        <Footer />
       </div>
       {!['/privacy', '/terms', '/terms/services'].includes(pathname) && <BottomNav />}
       {open && <SearchModal />}
