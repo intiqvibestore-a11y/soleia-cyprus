@@ -1,9 +1,10 @@
 import { useState, useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
-import { Star, ChevronRight, ChevronLeft, Shield, Clock } from 'lucide-react'
+import { Star, ChevronRight, ChevronLeft, Shield, Clock, MapPin, ChevronDown } from 'lucide-react'
 import SearchBar from '../components/SearchBar'
 import { useT } from '../context/LanguageContext'
 import { supabase } from '../utils/supabase/client'
+import LocationModal, { loadLocation } from '../components/LocationModal'
 
 const FALLBACK_GRADIENTS = [
   'from-[#E8D5B7] to-[#C9A882]',
@@ -92,6 +93,15 @@ function ScrollRow({ children, label }) {
 export default function Home() {
   const T = useT()
   const [businesses, setBusinesses] = useState([])
+  const [selectedLocation, setSelectedLocation] = useState(null)
+  const [locModalOpen, setLocModalOpen] = useState(false)
+
+  useEffect(() => {
+    setSelectedLocation(loadLocation())
+    const handler = () => setSelectedLocation(loadLocation())
+    window.addEventListener('soleia_location_changed', handler)
+    return () => window.removeEventListener('soleia_location_changed', handler)
+  }, [])
 
   useEffect(() => {
     supabase
@@ -106,6 +116,28 @@ export default function Home() {
 
   return (
     <>
+      {/* Location bar */}
+      <div className="px-5 py-3 border-b border-[#F0EAE3]" style={{ background: '#FDFAF7' }}>
+        <button
+          onClick={() => setLocModalOpen(true)}
+          className="flex items-center gap-1.5 cursor-pointer"
+          style={{ background: 'none', border: 'none', padding: 0 }}
+        >
+          <MapPin className="w-4 h-4 shrink-0" style={{ color: '#C9A882' }} strokeWidth={1.7} />
+          <span className="text-[14px] font-semibold" style={{ color: '#1C1917' }}>
+            {selectedLocation?.label || 'Τρέχουσα τοποθεσία'}
+          </span>
+          <ChevronDown className="w-4 h-4" style={{ color: '#78716C' }} strokeWidth={1.7} />
+        </button>
+      </div>
+
+      {locModalOpen && (
+        <LocationModal
+          onClose={() => setLocModalOpen(false)}
+          onSelect={(loc) => setSelectedLocation(loc)}
+        />
+      )}
+
       <section>
         <div
           className="relative flex flex-col items-center justify-center text-center px-4 sm:px-5 py-12 sm:py-24"

@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Search, MapPin, Calendar, ChevronLeft, ChevronRight, X } from 'lucide-react'
 import { useT } from '../context/LanguageContext'
+import LocationModal, { loadLocation } from './LocationModal'
 
 // English keys stay constant — used for state/filtering, not display
 const FILTER_TAB_KEYS = ['All', 'Treatments', 'Venues', 'Professionals']
@@ -294,6 +295,7 @@ export default function SearchBar() {
   const [location, setLocation] = useState('')
   const [selectedDate, setSelectedDate] = useState(null)
   const [selectedTimeKey, setSelectedTimeKey] = useState('Any time')
+  const [locModalOpen, setLocModalOpen] = useState(false)
 
   const today = new Date()
 
@@ -303,6 +305,17 @@ export default function SearchBar() {
     }
     document.addEventListener('mousedown', handler)
     return () => document.removeEventListener('mousedown', handler)
+  }, [])
+
+  useEffect(() => {
+    const loc = loadLocation()
+    if (loc) setLocation(loc.label)
+    const handler = () => {
+      const l = loadLocation()
+      if (l) setLocation(l.label)
+    }
+    window.addEventListener('soleia_location_changed', handler)
+    return () => window.removeEventListener('soleia_location_changed', handler)
   }, [])
 
   const toggle = (section) => setActiveSection(s => s === section ? null : section)
@@ -360,17 +373,14 @@ export default function SearchBar() {
 
         <div className="relative">
           <button
-            onClick={() => toggle('location')}
-            className={`w-full flex items-center gap-3 px-4 py-4 transition-colors text-left ${activeSection === 'location' ? 'bg-[#F5F0EB]' : 'active:bg-[#F5F0EB]'}`}
+            onClick={() => setLocModalOpen(true)}
+            className="w-full flex items-center gap-3 px-4 py-4 transition-colors text-left active:bg-[#F5F0EB]"
           >
             <MapPin className="w-4 h-4 text-[#C9A882] shrink-0" />
             <span className={`text-sm truncate ${location ? 'text-[#1C1917] font-medium' : 'text-[#A8A29E]'}`}>
               {locationPlaceholder}
             </span>
           </button>
-          {activeSection === 'location' && (
-            <LocationDropdown onSelectCurrent={dropdownShared.onSelectCurrent} onSelectCity={dropdownShared.onSelectCity} />
-          )}
         </div>
 
         <div className="h-px bg-[#F0EAE3] mx-4" />
@@ -412,15 +422,12 @@ export default function SearchBar() {
 
         <div className="relative flex-1 min-w-0">
           <button
-            onClick={() => toggle('location')}
-            className={`w-full h-full flex items-center gap-2.5 px-5 py-3.5 transition-colors ${activeSection === 'location' ? 'bg-[#F5F0EB]' : 'hover:bg-[#F5F0EB]'}`}
+            onClick={() => setLocModalOpen(true)}
+            className="w-full h-full flex items-center gap-2.5 px-5 py-3.5 transition-colors hover:bg-[#F5F0EB]"
           >
             <MapPin className="w-4 h-4 text-[#C9A882] shrink-0" />
             <span className={`text-sm truncate ${location ? 'text-[#1C1917] font-medium' : 'text-[#A8A29E]'}`}>{locationPlaceholder}</span>
           </button>
-          {activeSection === 'location' && (
-            <LocationDropdown onSelectCurrent={dropdownShared.onSelectCurrent} onSelectCity={dropdownShared.onSelectCity} />
-          )}
         </div>
 
         <div className="w-px bg-[#E8E0D8] my-3 shrink-0" />
@@ -441,6 +448,13 @@ export default function SearchBar() {
           )}
         </div>
       </div>
+
+      {locModalOpen && (
+        <LocationModal
+          onClose={() => setLocModalOpen(false)}
+          onSelect={(loc) => setLocation(loc.label)}
+        />
+      )}
     </div>
   )
 }

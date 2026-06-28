@@ -4,6 +4,7 @@ import { Star, Heart, Search, MapPin, SlidersHorizontal, ChevronDown } from 'luc
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet'
 import L from 'leaflet'
 import { useT } from '../context/LanguageContext'
+import { supabase } from '../utils/supabase/client'
 
 const ALL_SERVICES = [
   { id: 1,  name: 'Maria Theodorou',     service: 'Deep Tissue Massage',     category: 'Massage',  location: 'Limassol', rating: 4.9, reviews: 218,  price: 65,  duration: '60 min',  tag: 'Featured', bg: 'from-[#E8D5B7] to-[#C9A882]', lat: 34.6845, lng: 33.0434 },
@@ -19,6 +20,14 @@ const ALL_SERVICES = [
   { id: 11, name: 'Yiannis Georgiou',   service: 'Personal Training',       category: 'Wellness', location: 'Limassol', rating: 4.9, reviews: 78,   price: 60,  duration: '60 min',  tag: null,       bg: 'from-[#E8DCE0] to-[#D0BBBF]', lat: 34.6923, lng: 33.0612 },
   { id: 12, name: 'Irene Loizou',       service: 'Microblading Brows',      category: 'Beauty',   location: 'Paphos',   rating: 5.0, reviews: 56,   price: 150, duration: '120 min', tag: 'Featured', bg: 'from-[#D9E0D9] to-[#B5C4B5]', lat: 34.7854, lng: 32.4089 },
 ]
+
+function haversine(lat1, lng1, lat2, lng2) {
+  const R = 6371
+  const dLat = (lat2 - lat1) * Math.PI / 180
+  const dLng = (lng2 - lng1) * Math.PI / 180
+  const a = Math.sin(dLat / 2) ** 2 + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLng / 2) ** 2
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+}
 
 const SNAPS = [20, 45, 90]
 function snapNearest(h) {
@@ -45,8 +54,14 @@ function makePin(rating, isActive) {
   })
 }
 
-function ServiceMap({ providers, hoveredId }) {
+function ServiceMap({ providers, hoveredId, dbBusinesses, userLoc }) {
   const T = useT()
+  const userDot = L.divIcon({
+    html: `<div style="width:18px;height:18px;background:#3B82F6;border-radius:50%;border:3px solid white;box-shadow:0 0 0 5px rgba(59,130,246,0.22)"></div>`,
+    iconSize: [18, 18],
+    iconAnchor: [9, 9],
+    className: '',
+  })
   return (
     <MapContainer
       center={[35.0, 33.0]}
@@ -59,6 +74,22 @@ function ServiceMap({ providers, hoveredId }) {
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
+      {dbBusinesses.map(b => b.lat && b.lng ? (
+        <Marker key={`db-${b.id}`} position={[b.lat, b.lng]} icon={makePin(b.rating ?? '-', false)}>
+          <Popup>
+            <div className="text-xs min-w-[140px]">
+              <p className="font-semibold text-[#1C1917]">{b.name}</p>
+              <p className="text-[#78716C]">{b.city}</p>
+              {b.rating != null && (
+                <div className="flex items-center gap-1 mt-1">
+                  <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
+                  <span>{b.rating}</span>
+                </div>
+              )}
+            </div>
+          </Popup>
+        </Marker>
+      ) : null)}
       {providers.map(p => (
         <Marker
           key={p.id}
@@ -78,6 +109,9 @@ function ServiceMap({ providers, hoveredId }) {
           </Popup>
         </Marker>
       ))}
+      {userLoc?.lat != null && userLoc?.lng != null && (
+        <Marker position={[userLoc.lat, userLoc.lng]} icon={userDot} />
+      )}
     </MapContainer>
   )
 }
@@ -144,6 +178,10 @@ export default function Services() {
   const [hoveredId, setHoveredId] = useState(null)
   const [sheetH, setSheetH] = useState(45)
   const [isDragging, setIsDragging] = useState(false)
+  const [dbBusinesses, setDbBusinesses] = useState([])
+  const [userLocation, setUserLocation] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('soleia_location')) } catch { return null }
+  })
   const startY = useRef(0)
   const startH = useRef(45)
 
@@ -161,8 +199,16 @@ export default function Services() {
       )
     }
     if (city && city !== 'All') list = list.filter(s => s.location === city)
-    return list.sort((a, b) => b.rating - a.rating)
-  }, [query, city])
+    if (userLocation?.lat != null && userLocation?.lng != null) {
+      list.sort((a, b) =>
+        haversine(userLocation.lat, userLocation.lng, a.lat, a.lng) -
+        haversine(userLocation.lat, userLocation.lng, b.lat, b.lng)
+      )
+    } else {
+      list.sort((a, b) => b.rating - a.rating)
+    }
+    return list
+  }, [query, city, userLocation])
 
   const handleDragStart = (e) => {
     setIsDragging(true)
@@ -193,6 +239,22 @@ export default function Services() {
       document.removeEventListener('touchend', onEnd)
     }
   }, [isDragging])
+
+  useEffect(() => {
+    supabase
+      .from('businesses')
+      .select('id, name, lat, lng, rating, category, city')
+      .not('lat', 'is', null)
+      .then(({ data }) => { if (data) setDbBusinesses(data) })
+  }, [])
+
+  useEffect(() => {
+    const handler = () => {
+      try { setUserLocation(JSON.parse(localStorage.getItem('soleia_location'))) } catch {}
+    }
+    window.addEventListener('soleia_location_changed', handler)
+    return () => window.removeEventListener('soleia_location_changed', handler)
+  }, [])
 
   const filterPills = [
     T.results_filter_providers,
@@ -243,7 +305,7 @@ export default function Services() {
 
       {/* Map — fills entire area */}
       <div className="absolute inset-0 z-0">
-        <ServiceMap providers={filtered} hoveredId={hoveredId} />
+        <ServiceMap providers={filtered} hoveredId={hoveredId} dbBusinesses={dbBusinesses} userLoc={userLocation} />
       </div>
 
       {/* Draggable bottom sheet */}
