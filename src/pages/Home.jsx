@@ -115,9 +115,9 @@ export default function Home() {
   }, [])
 
   return (
-    <>
+    <div style={{ background: 'radial-gradient(ellipse 120% 60% at 70% 0%, #E8D5B7 0%, #F5F0EB 42%, #FDFAF7 80%)' }}>
       {/* Location bar */}
-      <div className="px-5 py-3 border-b border-[#F0EAE3]" style={{ background: '#FDFAF7' }}>
+      <div className="px-5 py-3 border-b border-[#F0EAE3]">
         <button
           onClick={() => setLocModalOpen(true)}
           className="flex items-center gap-1.5 cursor-pointer"
@@ -141,7 +141,6 @@ export default function Home() {
       <section>
         <div
           className="relative flex flex-col items-center justify-center text-center px-4 sm:px-5 py-12 sm:py-24"
-          style={{ background: 'radial-gradient(ellipse 80% 100% at 75% 40%, #E8D5B7 0%, #F5F0EB 45%, #FDFAF7 100%)' }}
         >
           <h1
             className="font-display font-medium text-4xl sm:text-5xl lg:text-[58px] text-[#1C1917] mb-4 leading-tight max-w-2xl fade-up delay-0"
@@ -176,7 +175,7 @@ export default function Home() {
         </div>
       </section>
 
-      <div className="bg-white">
+      <div>
         {/* Προτεινόμενα */}
         <ScrollRow label={T.home_recommended}>
           {businesses.length > 0
@@ -198,7 +197,7 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-5 sm:px-8"><hr className="border-[#F0EAE3]" /></div>
       </div>
 
-      <section className="bg-[#F5F0EB] py-10 sm:py-14">
+      <section className="py-10 sm:py-14">
         <div className="max-w-7xl mx-auto px-5 sm:px-8">
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 text-center">
             {T.home_why.map(({ title, desc }, i) => {
@@ -217,7 +216,7 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="bg-white py-8 sm:py-14">
+      <section className="py-8 sm:py-14">
         <div className="max-w-7xl mx-auto px-4 sm:px-8">
           <div className="bg-[#1C1917] rounded-2xl sm:rounded-3xl px-6 sm:px-16 py-10 sm:py-14 flex flex-col sm:flex-row items-center justify-between gap-6 sm:gap-8 text-center sm:text-left">
             <div>
@@ -233,6 +232,6 @@ export default function Home() {
           </div>
         </div>
       </section>
-    </>
+    </div>
   )
 }
