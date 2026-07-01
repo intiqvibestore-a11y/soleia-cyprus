@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
-import { Link } from 'react-router-dom'
-import { Star, ChevronRight, ChevronLeft, Shield, Clock, MapPin, ChevronDown } from 'lucide-react'
-import SearchBar from '../components/SearchBar'
+import { Link, useNavigate } from 'react-router-dom'
+import { Star, ChevronRight, ChevronLeft, Shield, Clock, MapPin, ChevronDown, Search, X, Calendar } from 'lucide-react'
 import { useT } from '../context/LanguageContext'
 import { supabase } from '../utils/supabase/client'
 import LocationModal, { loadLocation } from '../components/LocationModal'
@@ -17,6 +16,141 @@ const FALLBACK_GRADIENTS = [
 
 const WHY_ICONS = [Shield, Clock, Star]
 
+const HOME_CATEGORIES = [
+  { key: '',                       label: 'Όλα',                    icon: <><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></> },
+  { key: 'Μαλλιά και χτένισμα',   label: 'Μαλλιά και χτένισμα',   icon: <><circle cx="6" cy="6" r="2.5"/><circle cx="6" cy="18" r="2.5"/><path d="M19 5L8.5 15.5M14 14l5 5M8.5 8.5l3.5 3.5"/></> },
+  { key: 'Φρύδια & βλεφαρίδες',   label: 'Φρύδια & βλεφαρίδες',   icon: <><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="1" fill="currentColor" stroke="none"/></> },
+  { key: 'Μασάζ',                 label: 'Μασάζ',                  icon: <><path d="M19 11V9a2 2 0 00-4 0v1m0 0V8a2 2 0 00-4 0v2m0 0V9a2 2 0 00-4 0v6c0 3.5 3 6 7 6h1c3 0 5-2 5-5v-5a2 2 0 00-4 0v1"/></> },
+  { key: 'Σπα και σάουνα',        label: 'Σπα και σάουνα',         icon: <><path d="M12 22V12m0 0C12 7 7 4 2 6c0 5 3 9 10 9m0-9c0-5 5-8 10-6 0 5-3 9-10 9"/></> },
+  { key: 'Νύχια',                 label: 'Νύχια',                  icon: <><rect x="8" y="2" width="8" height="11" rx="4"/><path d="M6 17h12a1 1 0 011 1v2a1 1 0 01-1 1H6a1 1 0 01-1-1v-2a1 1 0 011-1z"/></> },
+  { key: 'Αποτρίχωση',            label: 'Αποτρίχωση',             icon: <><rect x="4" y="9" width="16" height="7" rx="2"/><path d="M8 9V7a4 4 0 018 0v2M12 12v2"/></> },
+  { key: 'Περιποίηση προσώπου',   label: 'Περιποίηση προσώπου',    icon: <><circle cx="12" cy="12" r="9"/><circle cx="9" cy="10" r="1" fill="currentColor" stroke="none"/><circle cx="15" cy="10" r="1" fill="currentColor" stroke="none"/><path d="M9 15.5a4.5 4.5 0 006 0"/></> },
+  { key: 'Κουρείο',               label: 'Κουρείο',                icon: <><path d="M5 3h14M5 3l2.5 4M19 3l-2.5 4m-9 0h9m-9 0L5 21m12-14L19 21M5 21h14"/></> },
+  { key: 'Αισθητικές υπηρεσίες', label: 'Αισθητικές υπηρεσίες',  icon: <><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6L12 2z"/></> },
+]
+
+function HomeCatIcon({ paths, large }) {
+  return (
+    <svg
+      viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"
+      className={large ? 'w-8 h-8' : 'w-6 h-6'}
+    >
+      {paths}
+    </svg>
+  )
+}
+
+function HomeSearchModal({ onClose, selectedLocation, onOpenLocation }) {
+  const navigate = useNavigate()
+  const [query, setQuery] = useState('')
+  const inputRef = useRef(null)
+
+  useEffect(() => {
+    const t = setTimeout(() => inputRef.current?.focus({ preventScroll: true }), 120)
+    return () => clearTimeout(t)
+  }, [])
+
+  const goSearch = (catKey) => {
+    const params = new URLSearchParams()
+    const q = catKey !== undefined ? catKey : query
+    if (q) params.set('q', q)
+    const qs = params.toString()
+    navigate(`/services${qs ? '?' + qs : ''}`)
+    onClose()
+  }
+
+  return (
+    <div
+      className="fixed inset-0 z-[400] flex flex-col"
+      style={{ background: 'white', overscrollBehavior: 'contain' }}
+    >
+      {/* Header */}
+      <div className="flex items-center justify-between px-5 pt-6 pb-4 shrink-0">
+        <span className="text-[22px] font-bold" style={{ color: '#1C1917' }}>Αναζήτηση</span>
+        <button
+          onClick={onClose}
+          style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', lineHeight: 0 }}
+        >
+          <X className="w-6 h-6" style={{ color: '#1C1917' }} />
+        </button>
+      </div>
+
+      {/* Input rows */}
+      <div className="px-5 flex flex-col gap-3 shrink-0">
+        {/* Search */}
+        <div
+          className="flex items-center gap-3 px-4 rounded-2xl"
+          style={{ height: 52, border: '1.5px solid #E8E0D8' }}
+        >
+          <Search className="w-4 h-4 shrink-0" style={{ color: '#A8A29E' }} strokeWidth={1.7} />
+          <input
+            ref={inputRef}
+            value={query}
+            onChange={e => setQuery(e.target.value)}
+            onKeyDown={e => e.key === 'Enter' && goSearch()}
+            placeholder="Οποιεσδήποτε θεραπείες, χώροι ή επαγγελμ..."
+            className="flex-1 bg-transparent outline-none"
+            style={{ fontSize: 15, color: '#1C1917', border: 'none' }}
+          />
+        </div>
+
+        {/* Location */}
+        <button
+          onClick={onOpenLocation}
+          className="flex items-center gap-3 px-4 rounded-2xl cursor-pointer text-left"
+          style={{ height: 52, border: '1.5px solid #E8E0D8', background: 'white' }}
+        >
+          <MapPin className="w-4 h-4 shrink-0" style={{ color: '#A8A29E' }} strokeWidth={1.7} />
+          <span style={{ fontSize: 15, color: '#1C1917' }}>
+            {selectedLocation?.label || 'Τρέχουσα τοποθεσία'}
+          </span>
+        </button>
+
+        {/* Date */}
+        <div
+          className="flex items-center gap-3 px-4 rounded-2xl"
+          style={{ height: 52, border: '1.5px solid #E8E0D8' }}
+        >
+          <Calendar className="w-4 h-4 shrink-0" style={{ color: '#A8A29E' }} strokeWidth={1.7} />
+          <span style={{ fontSize: 15, color: '#A8A29E' }}>Οποιαδήποτε στιγμή</span>
+        </div>
+      </div>
+
+      {/* Categories */}
+      <div className="flex-1 overflow-y-auto px-5 pt-6 pb-2">
+        <p className="text-[18px] font-bold mb-4" style={{ color: '#1C1917' }}>Κατηγορίες</p>
+        <div className="grid grid-cols-2 gap-3">
+          {HOME_CATEGORIES.map(({ key, label, icon }) => (
+            <button
+              key={key || 'all'}
+              onClick={() => goSearch(key)}
+              className="flex flex-col items-center gap-3 py-5 px-3 rounded-2xl cursor-pointer"
+              style={{ border: '1.5px solid #E8E0D8', background: '#FAFAFA' }}
+            >
+              <HomeCatIcon paths={icon} large />
+              <span className="text-[13px] font-medium text-center leading-snug" style={{ color: '#1C1917' }}>
+                {label}
+              </span>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Bottom button */}
+      <div className="px-5 py-4 shrink-0" style={{ borderTop: '1px solid #F0EAE3' }}>
+        <button
+          onClick={() => goSearch()}
+          className="w-full py-4 rounded-full font-semibold cursor-pointer"
+          style={{ background: '#1C1917', color: 'white', border: 'none', fontSize: 16 }}
+        >
+          Αναζήτηση
+        </button>
+      </div>
+    </div>
+  )
+}
+
 function BusinessCard({ business, index }) {
   const gradient = FALLBACK_GRADIENTS[index % FALLBACK_GRADIENTS.length]
   return (
@@ -25,7 +159,6 @@ function BusinessCard({ business, index }) {
       className="shrink-0 w-[240px] sm:w-[280px] group"
       style={{ textDecoration: 'none' }}
     >
-      {/* Image — standalone, no wrapping card */}
       <div className="relative w-full rounded-xl overflow-hidden" style={{ aspectRatio: '3 / 2' }}>
         {business.cover_url ? (
           <img
@@ -37,8 +170,6 @@ function BusinessCard({ business, index }) {
           <div className={`w-full h-full bg-gradient-to-br ${gradient} transition-transform duration-300 group-hover:scale-105`} />
         )}
       </div>
-
-      {/* Text — below image, no background, no border */}
       <div className="pt-2.5 px-0.5">
         <div className="flex items-start justify-between gap-2">
           <h3 className="font-bold text-base leading-tight" style={{ color: '#3D2B1F' }}>{business.name}</h3>
@@ -92,9 +223,11 @@ function ScrollRow({ children, label }) {
 
 export default function Home() {
   const T = useT()
+  const navigate = useNavigate()
   const [businesses, setBusinesses] = useState([])
   const [selectedLocation, setSelectedLocation] = useState(null)
   const [locModalOpen, setLocModalOpen] = useState(false)
+  const [searchModalOpen, setSearchModalOpen] = useState(false)
 
   useEffect(() => {
     setSelectedLocation(loadLocation())
@@ -123,12 +256,19 @@ export default function Home() {
         />
       )}
 
+      {searchModalOpen && (
+        <HomeSearchModal
+          onClose={() => setSearchModalOpen(false)}
+          selectedLocation={selectedLocation}
+          onOpenLocation={() => setLocModalOpen(true)}
+        />
+      )}
+
       <section>
-        <div
-          className="relative flex flex-col items-center justify-center text-center px-4 sm:px-5 py-12 sm:py-24"
-        >
-          {/* Location picker — left-aligned above search box */}
-          <div className="w-full mb-5">
+        <div className="flex flex-col px-4 sm:px-5 pt-8 pb-6 sm:pt-12 sm:pb-8">
+
+          {/* Location picker */}
+          <div className="mb-5">
             <button
               onClick={() => setLocModalOpen(true)}
               className="flex items-center gap-2 cursor-pointer"
@@ -142,31 +282,61 @@ export default function Home() {
             </button>
           </div>
 
-          <div className="w-full fade-up delay-2 relative z-[100]">
-            <SearchBar />
+          {/* Simple search bar */}
+          <button
+            onClick={() => setSearchModalOpen(true)}
+            className="w-full flex items-center gap-3 px-4 rounded-2xl mb-5 cursor-pointer text-left"
+            style={{
+              background: 'white',
+              border: '1.5px solid #E8E0D8',
+              height: 52,
+              boxShadow: '0 2px 12px rgba(28,25,23,0.08)',
+            }}
+          >
+            <Search className="w-4 h-4 shrink-0" style={{ color: '#A8A29E' }} strokeWidth={1.7} />
+            <span className="flex-1 text-[15px]" style={{ color: '#A8A29E' }}>
+              Περιήγηση σε όλες τις θεραπείες
+            </span>
+            <span
+              className="shrink-0 px-4 py-2 rounded-full font-semibold text-[13px]"
+              style={{ background: '#1C1917', color: 'white' }}
+            >
+              Αναζήτηση
+            </span>
+          </button>
+
+          {/* Categories horizontal scroll */}
+          <div className="overflow-x-auto scrollbar-hide -mx-4 px-4">
+            <div className="flex gap-3 w-max pb-1">
+              {HOME_CATEGORIES.map(({ key, label, icon }) => (
+                <button
+                  key={key || 'all'}
+                  onClick={() => navigate(`/services${key ? `?q=${encodeURIComponent(key)}` : ''}`)}
+                  className="flex flex-col items-center gap-2 py-3 rounded-2xl cursor-pointer shrink-0"
+                  style={{
+                    width: 76,
+                    paddingLeft: 6,
+                    paddingRight: 6,
+                    background: 'white',
+                    border: '1.5px solid #E8E0D8',
+                  }}
+                >
+                  <HomeCatIcon paths={icon} />
+                  <span
+                    className="text-[11px] font-medium text-center leading-tight w-full"
+                    style={{ color: '#1C1917' }}
+                  >
+                    {label}
+                  </span>
+                </button>
+              ))}
+            </div>
           </div>
 
-          <p className="text-sm text-[#78716C] mt-5 fade-in delay-3">
-            <span className="font-semibold text-[#1C1917]">{T.home_stats_count}</span>{' '}
-            {T.home_stats_label}&nbsp;·&nbsp;{T.home_stats_area}
-          </p>
-
-          <div className="flex flex-wrap justify-center gap-2 mt-4 fade-in delay-4">
-            {T.home_popular_searches.map((s, i) => (
-              <Link
-                key={i}
-                to={`/services?q=${encodeURIComponent(s)}`}
-                className="btn-press bg-white/70 hover:bg-white border border-[#E8E0D8] text-[#78716C] hover:text-[#1C1917] text-xs px-3.5 py-1.5 rounded-full transition-all duration-150"
-              >
-                {s}
-              </Link>
-            ))}
-          </div>
         </div>
       </section>
 
       <div>
-        {/* Προτεινόμενα */}
         <ScrollRow label={T.home_recommended}>
           {businesses.length > 0
             ? businesses.map((b, i) => <BusinessCard key={b.id} business={b} index={i} />)
@@ -174,15 +344,12 @@ export default function Home() {
           }
         </ScrollRow>
 
-
-        {/* Νέα στη Soleia */}
         <ScrollRow label={T.home_new}>
           {businesses.length > 0
             ? businesses.map((b, i) => <BusinessCard key={b.id} business={b} index={i + 3} />)
             : <EmptyPlaceholder />
           }
         </ScrollRow>
-
       </div>
 
       <section className="py-10 sm:py-14">
