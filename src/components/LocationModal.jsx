@@ -57,15 +57,9 @@ export default function LocationModal({ onClose, onSelect }) {
       return
     }
     navigator.geolocation.getCurrentPosition(
-      async ({ coords: { latitude: lat, longitude: lng } }) => {
-        let label = 'Τρέχουσα τοποθεσία'
-        try {
-          const res  = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`)
-          const data = await res.json()
-          label = data.address?.city || data.address?.town || data.address?.village || data.address?.suburb || label
-        } catch {}
+      ({ coords: { latitude: lat, longitude: lng } }) => {
         setGpsLoading(false)
-        handleSelect({ label, lat, lng })
+        handleSelect({ label: 'Τρέχουσα τοποθεσία', lat, lng })
       },
       () => { setGpsLoading(false); handleSelect({ label: 'Κύπρος', lat: 35.0, lng: 33.0 }) },
       { timeout: 8000 }

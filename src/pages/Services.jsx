@@ -182,6 +182,7 @@ export default function Services() {
   const [userLocation, setUserLocation] = useState(() => {
     try { return JSON.parse(localStorage.getItem('soleia_location')) } catch { return null }
   })
+  const [gpsLocation, setGpsLocation] = useState(null)
   const startY = useRef(0)
   const startH = useRef(45)
 
@@ -239,6 +240,16 @@ export default function Services() {
       document.removeEventListener('touchend', onEnd)
     }
   }, [isDragging])
+
+  useEffect(() => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        ({ coords: { latitude: lat, longitude: lng } }) => setGpsLocation({ lat, lng }),
+        () => {},
+        { timeout: 8000 }
+      )
+    }
+  }, [])
 
   useEffect(() => {
     supabase
@@ -305,7 +316,7 @@ export default function Services() {
 
       {/* Map — fills entire area */}
       <div className="absolute inset-0 z-0">
-        <ServiceMap providers={filtered} hoveredId={hoveredId} dbBusinesses={dbBusinesses} userLoc={userLocation} />
+        <ServiceMap providers={filtered} hoveredId={hoveredId} dbBusinesses={dbBusinesses} userLoc={gpsLocation} />
       </div>
 
       {/* Draggable bottom sheet */}

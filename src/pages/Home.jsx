@@ -131,11 +131,11 @@ export default function Home() {
           <div className="w-full mb-5">
             <button
               onClick={() => setLocModalOpen(true)}
-              className="w-full flex items-center gap-2 cursor-pointer"
+              className="flex items-center gap-2 cursor-pointer"
               style={{ background: 'none', border: 'none', padding: 0 }}
             >
-              <MapPin className="w-4 h-4 shrink-0" style={{ color: '#1C1917' }} strokeWidth={2} />
-              <span className="text-[15px] font-semibold flex-1 text-left" style={{ color: '#1C1917' }}>
+              <MapPin className="w-5 h-5 shrink-0" style={{ color: '#1C1917' }} strokeWidth={2} />
+              <span className="text-[15px] font-semibold" style={{ color: '#1C1917' }}>
                 {selectedLocation?.label || 'Τρέχουσα τοποθεσία'}
               </span>
               <ChevronDown className="w-4 h-4 shrink-0" style={{ color: '#78716C' }} strokeWidth={1.7} />
