@@ -285,15 +285,15 @@ export default function Home() {
           {/* Simple search bar */}
           <button
             onClick={() => setSearchModalOpen(true)}
-            className="w-full flex items-center gap-3 pl-5 pr-2 rounded-2xl mb-5 cursor-pointer text-left"
+            className="w-full flex items-center gap-3 pl-5 pr-2 rounded-3xl mb-5 cursor-pointer text-left"
             style={{
               background: 'white',
               height: 56,
               boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
             }}
           >
-            <Search className="w-4 h-4 shrink-0" style={{ color: '#1C1917' }} strokeWidth={1.7} />
-            <span className="flex-1 text-sm whitespace-nowrap overflow-hidden text-ellipsis" style={{ color: '#A8A29E' }}>
+            <Search className="w-6 h-6 shrink-0" style={{ color: '#1C1917' }} strokeWidth={1.7} />
+            <span className="flex-1 text-xs whitespace-nowrap" style={{ color: '#A8A29E' }}>
               Περιήγηση σε όλες τις θεραπείες
             </span>
             <span
