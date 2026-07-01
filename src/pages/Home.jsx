@@ -285,12 +285,11 @@ export default function Home() {
           {/* Simple search bar */}
           <button
             onClick={() => setSearchModalOpen(true)}
-            className="w-full flex items-center gap-3 px-4 rounded-2xl mb-5 cursor-pointer text-left"
+            className="w-full flex items-center gap-3 pl-5 pr-2 rounded-full mb-5 cursor-pointer text-left"
             style={{
               background: 'white',
-              border: '1.5px solid #E8E0D8',
-              height: 52,
-              boxShadow: '0 2px 12px rgba(28,25,23,0.08)',
+              height: 56,
+              boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
             }}
           >
             <Search className="w-4 h-4 shrink-0" style={{ color: '#A8A29E' }} strokeWidth={1.7} />
@@ -298,8 +297,8 @@ export default function Home() {
               Περιήγηση σε όλες τις θεραπείες
             </span>
             <span
-              className="shrink-0 px-4 py-2 rounded-full font-semibold text-[13px]"
-              style={{ background: '#1C1917', color: 'white' }}
+              className="shrink-0 px-5 rounded-full font-semibold text-[14px]"
+              style={{ background: '#1C1917', color: 'white', height: 44, display: 'flex', alignItems: 'center' }}
             >
               Αναζήτηση
             </span>
