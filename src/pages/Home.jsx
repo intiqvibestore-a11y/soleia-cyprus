@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Star, ChevronRight, ChevronLeft, Shield, Clock, MapPin, ChevronDown, Search, X, Calendar } from 'lucide-react'
+import { Star, ChevronRight, ChevronLeft, Shield, Clock, MapPin, ChevronDown, Search, X, Calendar, Grid2X2, Wand2, Eye, Paintbrush, Zap, Wind, Sparkles, Droplets, Scissors, User, Palette, PenTool, Smile, Stethoscope, Bone, Dumbbell, Brain, Activity, Apple, Flower2, PawPrint } from 'lucide-react'
 import { useT } from '../context/LanguageContext'
 import { supabase } from '../utils/supabase/client'
 import LocationModal, { loadLocation } from '../components/LocationModal'
@@ -17,27 +17,37 @@ const FALLBACK_GRADIENTS = [
 const WHY_ICONS = [Shield, Clock, Star]
 
 const HOME_CATEGORIES = [
-  { key: '',                       label: 'Όλα',                    icon: <><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></> },
-  { key: 'Μαλλιά και χτένισμα',   label: 'Μαλλιά και χτένισμα',   icon: <><circle cx="6" cy="6" r="2.5"/><circle cx="6" cy="18" r="2.5"/><path d="M19 5L8.5 15.5M14 14l5 5M8.5 8.5l3.5 3.5"/></> },
-  { key: 'Φρύδια & βλεφαρίδες',   label: 'Φρύδια & βλεφαρίδες',   icon: <><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="1" fill="currentColor" stroke="none"/></> },
-  { key: 'Μασάζ',                 label: 'Μασάζ',                  icon: <><path d="M19 11V9a2 2 0 00-4 0v1m0 0V8a2 2 0 00-4 0v2m0 0V9a2 2 0 00-4 0v6c0 3.5 3 6 7 6h1c3 0 5-2 5-5v-5a2 2 0 00-4 0v1"/></> },
-  { key: 'Σπα και σάουνα',        label: 'Σπα και σάουνα',         icon: <><path d="M12 22V12m0 0C12 7 7 4 2 6c0 5 3 9 10 9m0-9c0-5 5-8 10-6 0 5-3 9-10 9"/></> },
-  { key: 'Νύχια',                 label: 'Νύχια',                  icon: <><rect x="8" y="2" width="8" height="11" rx="4"/><path d="M6 17h12a1 1 0 011 1v2a1 1 0 01-1 1H6a1 1 0 01-1-1v-2a1 1 0 011-1z"/></> },
-  { key: 'Αποτρίχωση',            label: 'Αποτρίχωση',             icon: <><rect x="4" y="9" width="16" height="7" rx="2"/><path d="M8 9V7a4 4 0 018 0v2M12 12v2"/></> },
-  { key: 'Περιποίηση προσώπου',   label: 'Περιποίηση προσώπου',    icon: <><circle cx="12" cy="12" r="9"/><circle cx="9" cy="10" r="1" fill="currentColor" stroke="none"/><circle cx="15" cy="10" r="1" fill="currentColor" stroke="none"/><path d="M9 15.5a4.5 4.5 0 006 0"/></> },
-  { key: 'Κουρείο',               label: 'Κουρείο',                icon: <><path d="M5 3h14M5 3l2.5 4M19 3l-2.5 4m-9 0h9m-9 0L5 21m12-14L19 21M5 21h14"/></> },
-  { key: 'Αισθητικές υπηρεσίες', label: 'Αισθητικές υπηρεσίες',  icon: <><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6L12 2z"/></> },
+  { key: '',                          label: 'Όλα',                       icon: Grid2X2   },
+  { key: 'Μαλλιά και χτένισμα',      label: 'Μαλλιά και χτένισμα',      icon: Wand2     },
+  { key: 'Φρύδια & βλεφαρίδες',      label: 'Φρύδια & βλεφαρίδες',      icon: Eye       },
+  { key: 'Νύχια',                    label: 'Νύχια',                     icon: Paintbrush},
+  { key: 'Αποτρίχωση',               label: 'Αποτρίχωση',                icon: Zap       },
+  { key: 'Μασάζ',                    label: 'Μασάζ',                     icon: Wind      },
+  { key: 'Περιποίηση προσώπου',      label: 'Περιποίηση προσώπου',       icon: Sparkles  },
+  { key: 'Σπα και σάουνα',           label: 'Σπα και σάουνα',            icon: Droplets  },
+  { key: 'Κουρείο',                  label: 'Κουρείο',                   icon: Scissors  },
+  { key: 'Σώμα',                     label: 'Σώμα',                      icon: User      },
+  { key: 'Μακιγιάζ',                 label: 'Μακιγιάζ',                  icon: Palette   },
+  { key: 'Αισθητικές υπηρεσίες',    label: 'Αισθητικές υπηρεσίες',     icon: Star      },
+  { key: 'Τατουάζ και piercing',     label: 'Τατουάζ και piercing',      icon: PenTool   },
+  { key: 'Οδοντιατρικές υπηρεσίες', label: 'Οδοντιατρικές υπηρεσίες',  icon: Smile     },
+  { key: 'Ιατρικές υπηρεσίες',      label: 'Ιατρικές υπηρεσίες',       icon: Stethoscope},
+  { key: 'Χειροπρακτική',            label: 'Χειροπρακτική',             icon: Bone      },
+  { key: 'Fitness',                  label: 'Fitness',                   icon: Dumbbell  },
+  { key: 'Ψυχική υγεία',             label: 'Ψυχική υγεία',              icon: Brain     },
+  { key: 'Φυσικοθεραπεία',           label: 'Φυσικοθεραπεία',            icon: Activity  },
+  { key: 'Διατροφή',                 label: 'Διατροφή',                  icon: Apple     },
+  { key: 'Ολιστική υγεία',           label: 'Ολιστική υγεία',            icon: Flower2   },
+  { key: 'Κατοικίδια',               label: 'Κατοικίδια',                icon: PawPrint  },
 ]
 
-function HomeCatIcon({ paths, large }) {
+function HomeCatIcon({ icon: Icon, large }) {
   return (
-    <svg
-      viewBox="0 0 24 24" fill="none" stroke="currentColor"
-      strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"
-      className={large ? 'w-8 h-8' : 'w-6 h-6'}
-    >
-      {paths}
-    </svg>
+    <Icon
+      className={large ? 'w-8 h-8' : 'w-7 h-7'}
+      strokeWidth={1.5}
+      style={{ color: '#1C1917' }}
+    />
   )
 }
 
@@ -128,7 +138,7 @@ function HomeSearchModal({ onClose, selectedLocation, onOpenLocation }) {
               className="flex flex-col items-center gap-3 py-5 px-3 rounded-2xl cursor-pointer"
               style={{ border: '1.5px solid #E8E0D8', background: '#FAFAFA' }}
             >
-              <HomeCatIcon paths={icon} large />
+              <HomeCatIcon icon={icon} large />
               <span className="text-[13px] font-medium text-center leading-snug" style={{ color: '#1C1917' }}>
                 {label}
               </span>
@@ -304,25 +314,33 @@ export default function Home() {
             </span>
           </button>
 
-          {/* Categories horizontal scroll */}
+          {/* Categories 2-row horizontal scroll */}
           <div className="overflow-x-auto scrollbar-hide -mx-4 px-4">
-            <div className="flex gap-3 w-max pb-1">
+            <div
+              className="gap-2.5 pb-1"
+              style={{
+                display: 'grid',
+                gridTemplateRows: 'repeat(2, auto)',
+                gridAutoFlow: 'column',
+                gridAutoColumns: 'max-content',
+              }}
+            >
               {HOME_CATEGORIES.map(({ key, label, icon }) => (
                 <button
                   key={key || 'all'}
                   onClick={() => navigate(`/services${key ? `?q=${encodeURIComponent(key)}` : ''}`)}
-                  className="flex flex-col items-center gap-2 py-3 rounded-2xl cursor-pointer shrink-0"
+                  className="flex flex-col items-center justify-start gap-2 rounded-2xl cursor-pointer shrink-0 transition-all active:scale-95 hover:opacity-75"
                   style={{
                     width: 76,
-                    paddingLeft: 6,
-                    paddingRight: 6,
-                    background: 'white',
-                    border: '1.5px solid #E8E0D8',
+                    height: 84,
+                    padding: '12px 6px 10px',
+                    background: '#F5F0EB',
+                    border: 'none',
                   }}
                 >
-                  <HomeCatIcon paths={icon} />
+                  <HomeCatIcon icon={icon} />
                   <span
-                    className="text-[11px] font-medium text-center leading-tight w-full"
+                    className="text-[10px] font-medium text-center leading-tight w-full"
                     style={{ color: '#1C1917' }}
                   >
                     {label}
