@@ -34,7 +34,7 @@ export default function BottomNav() {
   const { pathname } = useLocation()
   const [hovered, setHovered] = useState(null)
   const [authOpen, setAuthOpen] = useState(false)
-  const [hidden, setHidden] = useState(false)
+  const [shrunk, setShrunk] = useState(false)
   const lastScrollY = useRef(0)
   const { user } = useAuth()
 
@@ -42,9 +42,9 @@ export default function BottomNav() {
     const onScroll = () => {
       const y = window.scrollY
       if (y > lastScrollY.current && y > 50) {
-        setHidden(true)
+        setShrunk(true)
       } else if (y < lastScrollY.current) {
-        setHidden(false)
+        setShrunk(false)
       }
       lastScrollY.current = y
     }
@@ -72,20 +72,19 @@ export default function BottomNav() {
     <>
       <div
         className="fixed bottom-0 left-0 right-0 z-[300] flex justify-center px-4 pt-2"
-        style={{
-          paddingBottom: 'max(10px, env(safe-area-inset-bottom))',
-          transform: hidden ? 'translateY(100%)' : 'translateY(0)',
-          transition: 'transform 0.3s ease',
-        }}
+        style={{ paddingBottom: 'max(10px, env(safe-area-inset-bottom))' }}
       >
         <div
-          className="flex items-center gap-0 px-2 py-2 rounded-[26px]"
+          className="flex items-center gap-0 px-2 rounded-[26px]"
           style={{
-            background: 'rgba(255,255,255,0.75)',
-            backdropFilter: 'blur(12px)',
-            WebkitBackdropFilter: 'blur(12px)',
+            background: 'rgba(255,255,255,0.6)',
+            backdropFilter: 'blur(16px)',
+            WebkitBackdropFilter: 'blur(16px)',
             border: '1px solid rgba(201,168,130,0.22)',
             boxShadow: '0 4px 24px rgba(201,168,130,0.14), 0 1px 4px rgba(28,25,23,0.06)',
+            transition: 'all 0.3s ease',
+            paddingTop: shrunk ? 4 : 8,
+            paddingBottom: shrunk ? 4 : 8,
           }}
         >
           {NAV_ITEMS.map((item, i) => {
@@ -102,8 +101,8 @@ export default function BottomNav() {
                 onClick={() => handleTap(item)}
                 animate={{ scale: hovering ? 1.12 : 1 }}
                 transition={{ type: 'spring', stiffness: 450, damping: 28 }}
-                className="relative flex items-center justify-center px-5 py-3 rounded-2xl cursor-pointer select-none"
-                style={{ background: 'transparent', border: 'none', outline: 'none' }}
+                className="relative flex items-center justify-center px-5 rounded-2xl cursor-pointer select-none"
+                style={{ background: 'transparent', border: 'none', outline: 'none', paddingTop: shrunk ? 8 : 12, paddingBottom: shrunk ? 8 : 12, transition: 'padding 0.3s ease' }}
                 aria-label={item.label}
               >
                 {/* Hover background */}
