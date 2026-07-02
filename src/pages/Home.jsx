@@ -315,11 +315,12 @@ export default function Home() {
           </button>
 
           {/* Categories 2-row horizontal scroll */}
-          <div className="overflow-x-auto scrollbar-hide -mx-4 px-4">
+          <div className="overflow-x-auto scrollbar-hide -mx-4 px-4 mt-7">
             <div
-              className="gap-2.5 pb-1"
+              className="pb-1 pr-8"
               style={{
                 display: 'grid',
+                gap: '16px',
                 gridTemplateRows: 'repeat(2, auto)',
                 gridAutoFlow: 'column',
                 gridAutoColumns: 'max-content',
