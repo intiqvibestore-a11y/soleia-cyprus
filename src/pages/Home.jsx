@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Star, ChevronRight, ChevronLeft, Shield, Clock, MapPin, ChevronDown, Search, X, Calendar, Grid2X2, Wand2, Eye, Paintbrush, Zap, Wind, Sparkles, Droplets, Scissors, User, Palette, PenTool, Smile, Stethoscope, Bone, Dumbbell, Brain, Activity, Apple, Flower2, PawPrint } from 'lucide-react'
+import { Star, ChevronRight, ChevronLeft, Shield, Clock, MapPin, ChevronDown, Search, X, Calendar, LayoutGrid, Scissors, ScissorsLineDashed, Eye, Hand, Zap, HandHeart, Smile, Waves, PersonStanding, Brush, Sparkles, PenTool, Stethoscope, Bone, Dumbbell, Brain, Activity, Apple, Flower2, PawPrint } from 'lucide-react'
 import { useT } from '../context/LanguageContext'
 import { supabase } from '../utils/supabase/client'
 import LocationModal, { loadLocation } from '../components/LocationModal'
@@ -17,28 +17,28 @@ const FALLBACK_GRADIENTS = [
 const WHY_ICONS = [Shield, Clock, Star]
 
 const HOME_CATEGORIES = [
-  { key: '',                          label: 'Όλα',                       icon: Grid2X2   },
-  { key: 'Μαλλιά και χτένισμα',      label: 'Μαλλιά και χτένισμα',      icon: Wand2     },
-  { key: 'Φρύδια & βλεφαρίδες',      label: 'Φρύδια & βλεφαρίδες',      icon: Eye       },
-  { key: 'Νύχια',                    label: 'Νύχια',                     icon: Paintbrush},
-  { key: 'Αποτρίχωση',               label: 'Αποτρίχωση',                icon: Zap       },
-  { key: 'Μασάζ',                    label: 'Μασάζ',                     icon: Wind      },
-  { key: 'Περιποίηση προσώπου',      label: 'Περιποίηση προσώπου',       icon: Sparkles  },
-  { key: 'Σπα και σάουνα',           label: 'Σπα και σάουνα',            icon: Droplets  },
-  { key: 'Κουρείο',                  label: 'Κουρείο',                   icon: Scissors  },
-  { key: 'Σώμα',                     label: 'Σώμα',                      icon: User      },
-  { key: 'Μακιγιάζ',                 label: 'Μακιγιάζ',                  icon: Palette   },
-  { key: 'Αισθητικές υπηρεσίες',    label: 'Αισθητικές υπηρεσίες',     icon: Star      },
-  { key: 'Τατουάζ και piercing',     label: 'Τατουάζ και piercing',      icon: PenTool   },
-  { key: 'Οδοντιατρικές υπηρεσίες', label: 'Οδοντιατρικές υπηρεσίες',  icon: Smile     },
-  { key: 'Ιατρικές υπηρεσίες',      label: 'Ιατρικές υπηρεσίες',       icon: Stethoscope},
-  { key: 'Χειροπρακτική',            label: 'Χειροπρακτική',             icon: Bone      },
-  { key: 'Fitness',                  label: 'Fitness',                   icon: Dumbbell  },
-  { key: 'Ψυχική υγεία',             label: 'Ψυχική υγεία',              icon: Brain     },
-  { key: 'Φυσικοθεραπεία',           label: 'Φυσικοθεραπεία',            icon: Activity  },
-  { key: 'Διατροφή',                 label: 'Διατροφή',                  icon: Apple     },
-  { key: 'Ολιστική υγεία',           label: 'Ολιστική υγεία',            icon: Flower2   },
-  { key: 'Κατοικίδια',               label: 'Κατοικίδια',                icon: PawPrint  },
+  { key: '',                          label: 'Όλα',                       icon: LayoutGrid        },
+  { key: 'Μαλλιά και χτένισμα',      label: 'Μαλλιά και χτένισμα',      icon: Scissors          },
+  { key: 'Φρύδια & βλεφαρίδες',      label: 'Φρύδια & βλεφαρίδες',      icon: Eye               },
+  { key: 'Νύχια',                    label: 'Νύχια',                     icon: Hand              },
+  { key: 'Αποτρίχωση',               label: 'Αποτρίχωση',                icon: Zap               },
+  { key: 'Μασάζ',                    label: 'Μασάζ',                     icon: HandHeart         },
+  { key: 'Περιποίηση προσώπου',      label: 'Περιποίηση προσώπου',       icon: Smile             },
+  { key: 'Σπα και σάουνα',           label: 'Σπα και σάουνα',            icon: Waves             },
+  { key: 'Κουρείο',                  label: 'Κουρείο',                   icon: ScissorsLineDashed},
+  { key: 'Σώμα',                     label: 'Σώμα',                      icon: PersonStanding    },
+  { key: 'Μακιγιάζ',                 label: 'Μακιγιάζ',                  icon: Brush             },
+  { key: 'Αισθητικές υπηρεσίες',    label: 'Αισθητικές υπηρεσίες',     icon: Sparkles          },
+  { key: 'Τατουάζ και piercing',     label: 'Τατουάζ και piercing',      icon: PenTool           },
+  { key: 'Οδοντιατρικές υπηρεσίες', label: 'Οδοντιατρικές υπηρεσίες',  icon: Smile             },
+  { key: 'Ιατρικές υπηρεσίες',      label: 'Ιατρικές υπηρεσίες',       icon: Stethoscope       },
+  { key: 'Χειροπρακτική',            label: 'Χειροπρακτική',             icon: Bone              },
+  { key: 'Fitness',                  label: 'Fitness',                   icon: Dumbbell          },
+  { key: 'Ψυχική υγεία',             label: 'Ψυχική υγεία',              icon: Brain             },
+  { key: 'Φυσικοθεραπεία',           label: 'Φυσικοθεραπεία',            icon: Activity          },
+  { key: 'Διατροφή',                 label: 'Διατροφή',                  icon: Apple             },
+  { key: 'Ολιστική υγεία',           label: 'Ολιστική υγεία',            icon: Flower2           },
+  { key: 'Κατοικίδια',               label: 'Κατοικίδια',                icon: PawPrint          },
 ]
 
 function HomeCatIcon({ icon: Icon, large }) {
@@ -315,7 +315,7 @@ export default function Home() {
           </button>
 
           {/* Categories 2-row horizontal scroll */}
-          <div className="overflow-x-auto scrollbar-hide -mx-4 px-4 mt-7">
+          <div className="overflow-x-auto scrollbar-hide -mx-4 px-4 mt-4">
             <div
               className="pb-1 pr-8"
               style={{
@@ -335,12 +335,12 @@ export default function Home() {
                 >
                   <div
                     className="flex items-center justify-center rounded-2xl"
-                    style={{ width: 72, height: 72, background: '#F5F0EB' }}
+                    style={{ width: 58, height: 58, background: '#F5F0EB' }}
                   >
                     <HomeCatIcon icon={icon} />
                   </div>
                   <span
-                    className="text-[10px] font-medium text-center leading-tight w-full"
+                    className="text-[10px] font-semibold text-center leading-tight w-full"
                     style={{ color: '#1C1917' }}
                   >
                     {label}
