@@ -329,16 +329,15 @@ export default function Home() {
                 <button
                   key={key || 'all'}
                   onClick={() => navigate(`/services${key ? `?q=${encodeURIComponent(key)}` : ''}`)}
-                  className="flex flex-col items-center justify-start gap-2 rounded-2xl cursor-pointer shrink-0 transition-all active:scale-95 hover:opacity-75"
-                  style={{
-                    width: 76,
-                    height: 84,
-                    padding: '12px 6px 10px',
-                    background: '#F5F0EB',
-                    border: 'none',
-                  }}
+                  className="flex flex-col items-center gap-2 cursor-pointer shrink-0 transition-all active:scale-95 hover:opacity-75"
+                  style={{ width: 72, background: 'none', border: 'none', padding: 0 }}
                 >
-                  <HomeCatIcon icon={icon} />
+                  <div
+                    className="flex items-center justify-center rounded-2xl"
+                    style={{ width: 72, height: 72, background: '#F5F0EB' }}
+                  >
+                    <HomeCatIcon icon={icon} />
+                  </div>
                   <span
                     className="text-[10px] font-medium text-center leading-tight w-full"
                     style={{ color: '#1C1917' }}
