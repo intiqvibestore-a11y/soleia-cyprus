@@ -34,7 +34,7 @@ export default function BottomNav() {
   const { pathname } = useLocation()
   const [hovered, setHovered] = useState(null)
   const [authOpen, setAuthOpen] = useState(false)
-  const [shrunk, setShrunk] = useState(false)
+  const [hidden, setHidden] = useState(false)
   const lastScrollY = useRef(0)
   const { user } = useAuth()
 
@@ -42,9 +42,9 @@ export default function BottomNav() {
     const onScroll = () => {
       const y = window.scrollY
       if (y > lastScrollY.current && y > 50) {
-        setShrunk(true)
+        setHidden(true)
       } else if (y < lastScrollY.current) {
-        setShrunk(false)
+        setHidden(false)
       }
       lastScrollY.current = y
     }
@@ -62,9 +62,9 @@ export default function BottomNav() {
 
   const handleTap = (item) => {
     if (item.authGate && !user) {
-      setAuthOpen(true)      // not logged in → show auth sheet
+      setAuthOpen(true)
     } else {
-      navigate(item.path)    // logged in → go to profile; no auth gate → normal nav
+      navigate(item.path)
     }
   }
 
@@ -72,24 +72,24 @@ export default function BottomNav() {
     <>
       <div
         className="fixed bottom-0 left-0 right-0 z-[300] flex justify-center px-4 pt-2"
-        style={{ paddingBottom: 'max(10px, env(safe-area-inset-bottom))' }}
+        style={{
+          paddingBottom: 'max(10px, env(safe-area-inset-bottom))',
+          transform: hidden ? 'translateY(100%)' : 'translateY(0)',
+          transition: 'transform 0.3s ease',
+        }}
       >
         <div
-          className="flex items-center gap-0 px-2 rounded-[26px]"
+          className="flex items-center gap-0 px-2 py-2 rounded-[26px]"
           style={{
             background: 'rgba(255,255,255,0.75)',
             backdropFilter: 'blur(12px)',
             WebkitBackdropFilter: 'blur(12px)',
             border: '1px solid rgba(201,168,130,0.22)',
             boxShadow: '0 4px 24px rgba(201,168,130,0.14), 0 1px 4px rgba(28,25,23,0.06)',
-            transition: 'all 0.3s ease',
-            paddingTop: shrunk ? 4 : 8,
-            paddingBottom: shrunk ? 4 : 8,
           }}
         >
           {NAV_ITEMS.map((item, i) => {
             const onCurrentPage = isActive(item.path, item.exact, pathname)
-            // Profile icon glows gold whenever user is logged in
             const highlighted = onCurrentPage || (item.authGate && !!user)
             const hovering = hovered === i
             const Icon = item.icon
@@ -102,8 +102,7 @@ export default function BottomNav() {
                 onClick={() => handleTap(item)}
                 animate={{ scale: hovering ? 1.12 : 1 }}
                 transition={{ type: 'spring', stiffness: 450, damping: 28 }}
-                className="relative flex items-center justify-center rounded-2xl cursor-pointer select-none"
-                style={{ paddingLeft: 20, paddingRight: 20, paddingTop: shrunk ? 6 : 12, paddingBottom: shrunk ? 6 : 12, transition: 'padding 0.3s ease' }}
+                className="relative flex items-center justify-center px-5 py-3 rounded-2xl cursor-pointer select-none"
                 style={{ background: 'transparent', border: 'none', outline: 'none' }}
                 aria-label={item.label}
               >
@@ -122,15 +121,15 @@ export default function BottomNav() {
                 </AnimatePresence>
 
                 {item.authGate && user ? (
-                  <FilledPersonIcon size={shrunk ? 20 : 26} color="#C9A882" />
+                  <FilledPersonIcon size={26} color="#C9A882" />
                 ) : (
                   <Icon
+                    className="transition-colors duration-200"
                     style={{
-                      width: shrunk ? 20 : 26,
-                      height: shrunk ? 20 : 26,
+                      width: 26,
+                      height: 26,
                       color: highlighted ? '#C9A882' : '#78716C',
                       strokeWidth: highlighted ? 2.1 : 1.6,
-                      transition: 'width 0.3s ease, height 0.3s ease, color 0.2s',
                     }}
                   />
                 )}
