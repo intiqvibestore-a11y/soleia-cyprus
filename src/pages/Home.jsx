@@ -278,7 +278,7 @@ export default function Home() {
         <div className="flex flex-col px-4 sm:px-5 pt-8 pb-6 sm:pt-12 sm:pb-8">
 
           {/* Location picker */}
-          <div className="mb-5">
+          <div className="mb-5 hidden">
             <button
               onClick={() => setLocModalOpen(true)}
               className="flex items-center gap-2 cursor-pointer"
