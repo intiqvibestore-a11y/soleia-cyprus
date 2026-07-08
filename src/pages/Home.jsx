@@ -67,11 +67,69 @@ function HomeSearchModal({ onClose, selectedLocation, onOpenLocation }) {
   const [recent, setRecent] = useState(() => loadRecent())
   const inputRef = useRef(null)
   const scrollRef = useRef(null)
+  const sheetRef = useRef(null)
 
   useEffect(() => {
     const t = setTimeout(() => inputRef.current?.focus({ preventScroll: true }), 120)
     return () => clearTimeout(t)
   }, [])
+
+  // Swipe-to-dismiss: drag handle area OR content scrolled to top + dragging down
+  useEffect(() => {
+    const sheet = sheetRef.current
+    if (!sheet) return
+    let startY = 0
+    let dragging = false
+    let startedInHandle = false
+    let delta = 0
+
+    const onStart = (e) => {
+      startY = e.touches[0].clientY
+      delta = 0
+      dragging = false
+      const offset = e.touches[0].clientY - sheet.getBoundingClientRect().top
+      startedInHandle = offset < 60
+      if (startedInHandle) dragging = true
+    }
+
+    const onMove = (e) => {
+      const dy = e.touches[0].clientY - startY
+      const atTop = (scrollRef.current?.scrollTop ?? 0) === 0
+      if (!dragging) {
+        if (atTop && dy > 0) dragging = true
+        else return
+      }
+      if (dy > 0) {
+        delta = dy
+        sheet.style.transition = 'none'
+        sheet.style.transform = `translateY(${dy}px)`
+        e.preventDefault()
+      }
+    }
+
+    const onEnd = () => {
+      if (!dragging) return
+      if (delta > 120) {
+        sheet.style.transition = 'transform 0.3s ease'
+        sheet.style.transform = 'translateY(100%)'
+        setTimeout(onClose, 300)
+      } else {
+        sheet.style.transition = 'transform 0.3s ease'
+        sheet.style.transform = 'translateY(0)'
+      }
+      dragging = false
+      delta = 0
+    }
+
+    sheet.addEventListener('touchstart', onStart, { passive: true })
+    sheet.addEventListener('touchmove', onMove, { passive: false })
+    sheet.addEventListener('touchend', onEnd)
+    return () => {
+      sheet.removeEventListener('touchstart', onStart)
+      sheet.removeEventListener('touchmove', onMove)
+      sheet.removeEventListener('touchend', onEnd)
+    }
+  }, [onClose])
 
   const clearRecent = () => {
     localStorage.removeItem(RECENT_KEY)
@@ -88,10 +146,6 @@ function HomeSearchModal({ onClose, selectedLocation, onOpenLocation }) {
     onClose()
   }
 
-  const handleScroll = () => {
-    if (scrollRef.current?.scrollTop > 60) onClose()
-  }
-
   return (
     <>
       <style>{`@keyframes slideUpSheet{from{transform:translateY(100%)}to{transform:translateY(0)}}`}</style>
@@ -105,6 +159,7 @@ function HomeSearchModal({ onClose, selectedLocation, onOpenLocation }) {
 
       {/* Sheet */}
       <div
+        ref={sheetRef}
         className="fixed bottom-0 left-0 right-0 z-[401] flex flex-col"
         style={{
           height: '90vh',
@@ -151,7 +206,7 @@ function HomeSearchModal({ onClose, selectedLocation, onOpenLocation }) {
         </div>
 
         {/* Scrollable body */}
-        <div ref={scrollRef} onScroll={handleScroll} className="flex-1 overflow-y-auto px-5 pt-5 pb-2">
+        <div ref={scrollRef} className="flex-1 overflow-y-auto px-5 pt-5 pb-2">
 
           {/* Recent searches */}
           {recent.length > 0 && (
