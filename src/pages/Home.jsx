@@ -170,7 +170,7 @@ function HomeSearchModal({ onClose, selectedLocation, onOpenLocation, onSetQuery
         {/* SearchPage — slides in on top when search input is tapped */}
         {searchPageOpen && (
           <SearchPage
-            onClose={() => setSearchPageOpen(false)}
+            onClose={(key) => { setSearchPageOpen(false); if (key) setQuery(key) }}
             onCloseAll={(key) => { setSearchPageOpen(false); onClose(); if (key) onSetQuery?.(key) }}
           />
         )}

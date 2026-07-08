@@ -116,8 +116,7 @@ export default function SearchPage({ onClose, onCloseAll }) {
     : []
 
   const handleCategory = (key) => {
-    navigate(`/services${key ? `?q=${encodeURIComponent(key)}` : ''}`)
-    onCloseAll(key) // pass key so parent can update pill bar
+    onClose(key)
   }
 
   const handleBusiness = (id) => {
