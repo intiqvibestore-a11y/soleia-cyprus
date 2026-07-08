@@ -81,6 +81,20 @@ export default function SearchPage({ onClose, onCloseAll, visible }) {
   const inputRef = useRef(null)
   const userLoc = loadLocation()
 
+  const [isDisplayed, setIsDisplayed] = useState(false)
+  const [isOpaque, setIsOpaque] = useState(false)
+
+  useEffect(() => {
+    if (visible) {
+      setIsDisplayed(true)
+      setIsOpaque(true)
+    } else {
+      setIsOpaque(false)
+      const t = setTimeout(() => setIsDisplayed(false), 150)
+      return () => clearTimeout(t)
+    }
+  }, [visible])
+
   useEffect(() => {
     if (!visible) {
       setQuery('')
@@ -139,7 +153,12 @@ export default function SearchPage({ onClose, onCloseAll, visible }) {
     <>
       <div
         className="fixed inset-0 z-[450] flex flex-col bg-white overflow-hidden"
-        style={{ borderRadius: '20px 20px 0 0', display: visible ? 'flex' : 'none' }}
+        style={{
+          borderRadius: '20px 20px 0 0',
+          display: isDisplayed ? 'flex' : 'none',
+          opacity: isOpaque ? 1 : 0,
+          transition: 'opacity 0.15s ease',
+        }}
       >
         {/* Header */}
         <div className="flex items-center gap-3 px-4 pt-6 pb-3 shrink-0">
