@@ -62,7 +62,7 @@ function saveToRecent(q) {
   localStorage.setItem(RECENT_KEY, JSON.stringify([q, ...prev]))
 }
 
-function HomeSearchModal({ onClose, selectedLocation, onOpenLocation }) {
+function HomeSearchModal({ onClose, selectedLocation, onOpenLocation, onSetQuery }) {
   const navigate = useNavigate()
   const [query, setQuery] = useState('')
   const [recent, setRecent] = useState(() => loadRecent())
@@ -171,7 +171,7 @@ function HomeSearchModal({ onClose, selectedLocation, onOpenLocation }) {
         {searchPageOpen && (
           <SearchPage
             onClose={() => setSearchPageOpen(false)}
-            onCloseAll={() => { setSearchPageOpen(false); onClose() }}
+            onCloseAll={(key) => { setSearchPageOpen(false); onClose(); if (key) onSetQuery?.(key) }}
           />
         )}
 
@@ -350,6 +350,7 @@ export default function Home() {
   const [selectedLocation, setSelectedLocation] = useState(null)
   const [locModalOpen, setLocModalOpen] = useState(false)
   const [searchModalOpen, setSearchModalOpen] = useState(false)
+  const [homePillQuery, setHomePillQuery] = useState('')
 
   useEffect(() => {
     setSelectedLocation(loadLocation())
@@ -383,6 +384,7 @@ export default function Home() {
           onClose={() => setSearchModalOpen(false)}
           selectedLocation={selectedLocation}
           onOpenLocation={() => setLocModalOpen(true)}
+          onSetQuery={setHomePillQuery}
         />
       )}
 
@@ -415,8 +417,8 @@ export default function Home() {
             }}
           >
             <Search className="w-6 h-6 shrink-0" style={{ color: '#1C1917' }} strokeWidth={1.7} />
-            <span className="flex-1 text-xs whitespace-nowrap" style={{ color: '#A8A29E' }}>
-              Περιήγηση σε όλες τις θεραπείες
+            <span className="flex-1 text-xs whitespace-nowrap" style={{ color: homePillQuery ? '#1C1917' : '#A8A29E' }}>
+              {homePillQuery || 'Περιήγηση σε όλες τις θεραπείες'}
             </span>
             <span
               className="shrink-0 px-5 rounded-full font-semibold text-[14px]"

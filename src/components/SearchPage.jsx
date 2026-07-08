@@ -1,5 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
-import { ArrowLeft, Search } from 'lucide-react'
+import { ArrowLeft, Search, Scissors, Eye, Hand, Zap, HandHeart, Smile, Waves,
+  ScissorsLineDashed, PersonStanding, Brush, Sparkles, PenTool, Stethoscope,
+  Bone, Dumbbell, Brain, Activity, Apple, Flower2, PawPrint } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../utils/supabase/client'
 import { loadLocation } from './LocationModal'
@@ -12,6 +14,30 @@ const SEARCH_CATEGORIES = [
   'Fitness', 'Ψυχική υγεία', 'Φυσικοθεραπεία', 'Διατροφή',
   'Ολιστική υγεία', 'Κατοικίδια',
 ]
+
+const CATEGORY_ICONS = {
+  'Μαλλιά και χτένισμα':      Scissors,
+  'Φρύδια & βλεφαρίδες':      Eye,
+  'Νύχια':                    Hand,
+  'Αποτρίχωση':               Zap,
+  'Μασάζ':                    HandHeart,
+  'Περιποίηση προσώπου':      Smile,
+  'Σπα και σάουνα':           Waves,
+  'Κουρείο':                  ScissorsLineDashed,
+  'Σώμα':                     PersonStanding,
+  'Μακιγιάζ':                 Brush,
+  'Αισθητικές υπηρεσίες':    Sparkles,
+  'Τατουάζ και piercing':     PenTool,
+  'Οδοντιατρικές υπηρεσίες': Smile,
+  'Ιατρικές υπηρεσίες':      Stethoscope,
+  'Χειροπρακτική':            Bone,
+  'Fitness':                  Dumbbell,
+  'Ψυχική υγεία':             Brain,
+  'Φυσικοθεραπεία':           Activity,
+  'Διατροφή':                 Apple,
+  'Ολιστική υγεία':           Flower2,
+  'Κατοικίδια':               PawPrint,
+}
 
 const TABS = [
   { key: 'all',           label: 'Όλα'           },
@@ -35,13 +61,14 @@ function formatDist(km) {
   return `${km.toFixed(1)} χλμ.`
 }
 
-function CatCircle() {
+function CatCircle({ category }) {
+  const Icon = CATEGORY_ICONS[category] || Search
   return (
     <div
       className="flex items-center justify-center shrink-0 rounded-full"
       style={{ width: 40, height: 40, background: '#F5F0EB' }}
     >
-      <Search className="w-4 h-4" style={{ color: '#C9A882' }} strokeWidth={1.7} />
+      <Icon className="w-4 h-4" style={{ color: '#C9A882' }} strokeWidth={1.7} />
     </div>
   )
 }
@@ -90,31 +117,29 @@ export default function SearchPage({ onClose, onCloseAll }) {
 
   const handleCategory = (key) => {
     navigate(`/services${key ? `?q=${encodeURIComponent(key)}` : ''}`)
-    onCloseAll()
+    onCloseAll(key) // pass key so parent can update pill bar
   }
 
   const handleBusiness = (id) => {
     navigate(`/business/${id}`)
-    onCloseAll()
+    onCloseAll(null)
   }
 
   const showTherapies = tab === 'all' || tab === 'therapies'
   const showVenues    = tab === 'all' || tab === 'venues'
 
-  // Categories to display — all when empty, filtered when typing, capped at 5 unless on therapies tab
-  const catsToShow = tab === 'therapies'
-    ? filteredCats
-    : filteredCats.slice(0, q ? 5 : filteredCats.length)
-
-  // Venues to display — capped at 5 unless on venues tab
-  const venuesToShow = tab === 'venues' ? filteredVenues : filteredVenues.slice(0, 5)
+  const catsToShow  = tab === 'therapies' ? filteredCats : filteredCats.slice(0, q ? 5 : filteredCats.length)
+  const venuesToShow = tab === 'venues'   ? filteredVenues : filteredVenues.slice(0, 5)
 
   return (
     <>
       <style>{`@keyframes slideInRight{from{transform:translateX(100%)}to{transform:translateX(0)}}`}</style>
       <div
-        className="fixed inset-0 z-[450] flex flex-col bg-white"
-        style={{ animation: 'slideInRight 0.28s cubic-bezier(0.22,1,0.36,1) both' }}
+        className="fixed inset-0 z-[450] flex flex-col bg-white overflow-hidden"
+        style={{
+          borderRadius: '20px 20px 0 0',
+          animation: 'slideInRight 0.28s cubic-bezier(0.22,1,0.36,1) both',
+        }}
       >
         {/* Header */}
         <div className="flex items-center gap-3 px-4 pt-6 pb-3 shrink-0">
@@ -172,7 +197,7 @@ export default function SearchPage({ onClose, onCloseAll }) {
           {/* Θεραπείες */}
           {showTherapies && catsToShow.length > 0 && (
             <div className="mb-6">
-              <p className="text-[15px] font-bold mb-1 py-2" style={{ color: '#1C1917' }}>Θεραπείες</p>
+              <p className="text-[15px] font-bold py-2" style={{ color: '#1C1917' }}>Θεραπείες</p>
               {catsToShow.map((cat, i) => (
                 <button
                   key={i}
@@ -183,28 +208,22 @@ export default function SearchPage({ onClose, onCloseAll }) {
                     borderBottom: i < catsToShow.length - 1 ? '1px solid #F5F0EB' : 'none',
                   }}
                 >
-                  <CatCircle />
+                  <CatCircle category={cat} />
                   <span className="text-[15px]" style={{ color: '#1C1917' }}>{cat}</span>
                 </button>
               ))}
               {q && tab !== 'therapies' && filteredCats.length > 5 && (
-                <button
-                  onClick={() => setTab('therapies')}
-                  className="py-2 cursor-pointer"
-                  style={{ background: 'none', border: 'none' }}
-                >
-                  <span className="text-[14px] font-semibold" style={{ color: '#C9A882' }}>
-                    Δείτε περισσότερα
-                  </span>
+                <button onClick={() => setTab('therapies')} className="py-2 cursor-pointer" style={{ background: 'none', border: 'none' }}>
+                  <span className="text-[14px] font-semibold" style={{ color: '#C9A882' }}>Δείτε περισσότερα</span>
                 </button>
               )}
             </div>
           )}
 
-          {/* Χώροι — only when there's a query */}
+          {/* Χώροι */}
           {showVenues && q && filteredVenues.length > 0 && (
             <div className="mb-6">
-              <p className="text-[15px] font-bold mb-1 py-2" style={{ color: '#1C1917' }}>Χώροι</p>
+              <p className="text-[15px] font-bold py-2" style={{ color: '#1C1917' }}>Χώροι</p>
               {venuesToShow.map((b, i) => (
                 <button
                   key={b.id}
@@ -215,44 +234,28 @@ export default function SearchPage({ onClose, onCloseAll }) {
                     borderBottom: i < venuesToShow.length - 1 ? '1px solid #F5F0EB' : 'none',
                   }}
                 >
-                  <div
-                    className="rounded-xl overflow-hidden shrink-0"
-                    style={{ width: 48, height: 48, background: '#F5F0EB' }}
-                  >
-                    {b.cover_url && (
-                      <img src={b.cover_url} alt={b.name} className="w-full h-full object-cover" />
-                    )}
+                  <div className="rounded-xl overflow-hidden shrink-0" style={{ width: 48, height: 48, background: '#F5F0EB' }}>
+                    {b.cover_url && <img src={b.cover_url} alt={b.name} className="w-full h-full object-cover" />}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-[14px] font-semibold truncate" style={{ color: '#1C1917' }}>
-                      {b.name}
-                    </p>
+                    <p className="text-[14px] font-semibold truncate" style={{ color: '#1C1917' }}>{b.name}</p>
                     <p className="text-[12px] truncate" style={{ color: '#A8A29E' }}>
                       {[b.category, b.city].filter(Boolean).join(' · ')}
                     </p>
                   </div>
                   {b.dist !== null && (
-                    <span className="text-[12px] shrink-0 ml-2" style={{ color: '#A8A29E' }}>
-                      {formatDist(b.dist)}
-                    </span>
+                    <span className="text-[12px] shrink-0 ml-2" style={{ color: '#A8A29E' }}>{formatDist(b.dist)}</span>
                   )}
                 </button>
               ))}
               {tab !== 'venues' && filteredVenues.length > 5 && (
-                <button
-                  onClick={() => setTab('venues')}
-                  className="py-2 cursor-pointer"
-                  style={{ background: 'none', border: 'none' }}
-                >
-                  <span className="text-[14px] font-semibold" style={{ color: '#C9A882' }}>
-                    Δείτε περισσότερα
-                  </span>
+                <button onClick={() => setTab('venues')} className="py-2 cursor-pointer" style={{ background: 'none', border: 'none' }}>
+                  <span className="text-[14px] font-semibold" style={{ color: '#C9A882' }}>Δείτε περισσότερα</span>
                 </button>
               )}
             </div>
           )}
 
-          {/* No results message */}
           {q && filteredCats.length === 0 && filteredVenues.length === 0 && (
             <p className="text-[14px] text-center mt-10" style={{ color: '#A8A29E' }}>
               Δεν βρέθηκαν αποτελέσματα για &ldquo;{query}&rdquo;
