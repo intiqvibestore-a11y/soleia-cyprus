@@ -4,6 +4,7 @@ import { Star, ChevronRight, ChevronLeft, Shield, Clock, MapPin, ChevronDown, Se
 import { useT } from '../context/LanguageContext'
 import { supabase } from '../utils/supabase/client'
 import LocationModal, { loadLocation } from '../components/LocationModal'
+import SearchPage from '../components/SearchPage'
 
 const FALLBACK_GRADIENTS = [
   'from-[#E8D5B7] to-[#C9A882]',
@@ -65,14 +66,9 @@ function HomeSearchModal({ onClose, selectedLocation, onOpenLocation }) {
   const navigate = useNavigate()
   const [query, setQuery] = useState('')
   const [recent, setRecent] = useState(() => loadRecent())
-  const inputRef = useRef(null)
+  const [searchPageOpen, setSearchPageOpen] = useState(false)
   const scrollRef = useRef(null)
   const sheetRef = useRef(null)
-
-  useEffect(() => {
-    const t = setTimeout(() => inputRef.current?.focus({ preventScroll: true }), 120)
-    return () => clearTimeout(t)
-  }, [])
 
   // Swipe-to-dismiss: drag handle area OR content scrolled to top + dragging down
   useEffect(() => {
@@ -171,6 +167,14 @@ function HomeSearchModal({ onClose, selectedLocation, onOpenLocation }) {
           animation: 'slideUpSheet 0.35s cubic-bezier(0.22,1,0.36,1) both',
         }}
       >
+        {/* SearchPage — slides in on top when search input is tapped */}
+        {searchPageOpen && (
+          <SearchPage
+            onClose={() => setSearchPageOpen(false)}
+            onCloseAll={() => { setSearchPageOpen(false); onClose() }}
+          />
+        )}
+
         {/* Drag handle */}
         <div className="flex justify-center pt-3 pb-1 shrink-0">
           <div style={{ width: 36, height: 4, borderRadius: 2, background: '#E0D8D0' }} />
@@ -189,18 +193,17 @@ function HomeSearchModal({ onClose, selectedLocation, onOpenLocation }) {
 
           {/* Input rows */}
           <div className="flex flex-col gap-3 pb-5">
-            <div className="flex items-center gap-3 px-4 rounded-2xl" style={{ height: 52, border: '1.5px solid #E8E0D8' }}>
+            {/* Tapping opens SearchPage */}
+            <button
+              onClick={() => setSearchPageOpen(true)}
+              className="w-full flex items-center gap-3 px-4 rounded-2xl cursor-pointer text-left"
+              style={{ height: 52, border: '1.5px solid #E8E0D8', background: 'white' }}
+            >
               <Search className="w-4 h-4 shrink-0" style={{ color: '#A8A29E' }} strokeWidth={1.7} />
-              <input
-                ref={inputRef}
-                value={query}
-                onChange={e => setQuery(e.target.value)}
-                onKeyDown={e => e.key === 'Enter' && goSearch()}
-                placeholder="Οποιεσδήποτε θεραπείες, χώροι ή επαγγελμ..."
-                className="flex-1 bg-transparent outline-none"
-                style={{ fontSize: 15, color: '#1C1917', border: 'none' }}
-              />
-            </div>
+              <span className="flex-1 text-[15px]" style={{ color: '#A8A29E' }}>
+                Οποιεσδήποτε θεραπείες, χώροι ή επαγγελμ...
+              </span>
+            </button>
             <button onClick={onOpenLocation} className="flex items-center gap-3 px-4 rounded-2xl cursor-pointer text-left" style={{ height: 52, border: '1.5px solid #E8E0D8', background: 'white' }}>
               <MapPin className="w-4 h-4 shrink-0" style={{ color: '#A8A29E' }} strokeWidth={1.7} />
               <span style={{ fontSize: 15, color: '#1C1917' }}>{selectedLocation?.label || 'Τρέχουσα τοποθεσία'}</span>
