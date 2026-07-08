@@ -80,36 +80,39 @@ function HomeSearchModal({ onClose, selectedLocation, onOpenLocation }) {
     if (!sheet) return
     let startY = 0
     let dragging = false
-    let startedInHandle = false
     let delta = 0
 
     const onStart = (e) => {
       startY = e.touches[0].clientY
       delta = 0
       dragging = false
-      const offset = e.touches[0].clientY - sheet.getBoundingClientRect().top
-      startedInHandle = offset < 60
-      if (startedInHandle) dragging = true
+      const offsetInSheet = e.touches[0].clientY - sheet.getBoundingClientRect().top
+      if (offsetInSheet < 60) {
+        dragging = true
+        sheet.style.animation = 'none' // kill CSS animation so transform takes effect immediately
+      }
     }
 
     const onMove = (e) => {
       const dy = e.touches[0].clientY - startY
-      const atTop = (scrollRef.current?.scrollTop ?? 0) === 0
       if (!dragging) {
-        if (atTop && dy > 0) dragging = true
-        else return
+        const atTop = (scrollRef.current?.scrollTop ?? 0) === 0
+        if (atTop && dy > 0) {
+          dragging = true
+          sheet.style.animation = 'none'
+        } else {
+          return
+        }
       }
-      if (dy > 0) {
-        delta = dy
-        sheet.style.transition = 'none'
-        sheet.style.transform = `translateY(${dy}px)`
-        e.preventDefault()
-      }
+      delta = Math.max(0, dy) // never drag upward
+      sheet.style.transition = 'none'
+      sheet.style.transform = `translateY(${delta}px)`
+      e.preventDefault()
     }
 
     const onEnd = () => {
       if (!dragging) return
-      if (delta > 120) {
+      if (delta > 150) {
         sheet.style.transition = 'transform 0.3s ease'
         sheet.style.transform = 'translateY(100%)'
         setTimeout(onClose, 300)
