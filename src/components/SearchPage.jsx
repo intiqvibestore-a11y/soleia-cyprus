@@ -144,6 +144,7 @@ export default function SearchPage({ onClose, onCloseAll }) {
         <div className="flex items-center gap-3 px-4 pt-6 pb-3 shrink-0">
           <button
             onClick={() => onClose()}
+            onTouchStart={e => e.stopPropagation()}
             style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', lineHeight: 0 }}
             aria-label="Back"
           >
