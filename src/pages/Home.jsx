@@ -51,113 +51,164 @@ function HomeCatIcon({ icon: Icon, large }) {
   )
 }
 
+const RECENT_KEY = 'soleia_recent_searches'
+function loadRecent() {
+  try { return JSON.parse(localStorage.getItem(RECENT_KEY) || '[]') } catch { return [] }
+}
+function saveToRecent(q) {
+  if (!q?.trim()) return
+  const prev = loadRecent().filter(s => s !== q).slice(0, 2)
+  localStorage.setItem(RECENT_KEY, JSON.stringify([q, ...prev]))
+}
+
 function HomeSearchModal({ onClose, selectedLocation, onOpenLocation }) {
   const navigate = useNavigate()
   const [query, setQuery] = useState('')
+  const [recent, setRecent] = useState(() => loadRecent())
   const inputRef = useRef(null)
+  const scrollRef = useRef(null)
 
   useEffect(() => {
     const t = setTimeout(() => inputRef.current?.focus({ preventScroll: true }), 120)
     return () => clearTimeout(t)
   }, [])
 
+  const clearRecent = () => {
+    localStorage.removeItem(RECENT_KEY)
+    setRecent([])
+  }
+
   const goSearch = (catKey) => {
-    const params = new URLSearchParams()
     const q = catKey !== undefined ? catKey : query
+    if (catKey === undefined && q?.trim()) saveToRecent(q.trim())
+    const params = new URLSearchParams()
     if (q) params.set('q', q)
     const qs = params.toString()
     navigate(`/services${qs ? '?' + qs : ''}`)
     onClose()
   }
 
+  const handleScroll = () => {
+    if (scrollRef.current?.scrollTop > 60) onClose()
+  }
+
   return (
-    <div
-      className="fixed inset-0 z-[400] flex flex-col"
-      style={{ background: 'white', overscrollBehavior: 'contain' }}
-    >
-      {/* Header */}
-      <div className="flex items-center justify-between px-5 pt-6 pb-4 shrink-0">
-        <span className="text-[22px] font-bold" style={{ color: '#1C1917' }}>Αναζήτηση</span>
-        <button
-          onClick={onClose}
-          style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', lineHeight: 0 }}
-        >
-          <X className="w-6 h-6" style={{ color: '#1C1917' }} />
-        </button>
-      </div>
+    <>
+      <style>{`@keyframes slideUpSheet{from{transform:translateY(100%)}to{transform:translateY(0)}}`}</style>
 
-      {/* Input rows */}
-      <div className="px-5 flex flex-col gap-3 shrink-0">
-        {/* Search */}
-        <div
-          className="flex items-center gap-3 px-4 rounded-2xl"
-          style={{ height: 52, border: '1.5px solid #E8E0D8' }}
-        >
-          <Search className="w-4 h-4 shrink-0" style={{ color: '#A8A29E' }} strokeWidth={1.7} />
-          <input
-            ref={inputRef}
-            value={query}
-            onChange={e => setQuery(e.target.value)}
-            onKeyDown={e => e.key === 'Enter' && goSearch()}
-            placeholder="Οποιεσδήποτε θεραπείες, χώροι ή επαγγελμ..."
-            className="flex-1 bg-transparent outline-none"
-            style={{ fontSize: 15, color: '#1C1917', border: 'none' }}
-          />
+      {/* Overlay */}
+      <div
+        className="fixed inset-0 z-[400]"
+        style={{ background: 'rgba(0,0,0,0.38)' }}
+        onClick={onClose}
+      />
+
+      {/* Sheet */}
+      <div
+        className="fixed bottom-0 left-0 right-0 z-[401] flex flex-col"
+        style={{
+          height: '90vh',
+          background: 'white',
+          borderRadius: '20px 20px 0 0',
+          animation: 'slideUpSheet 0.35s cubic-bezier(0.22,1,0.36,1) both',
+        }}
+      >
+        {/* Drag handle */}
+        <div className="flex justify-center pt-3 pb-1 shrink-0">
+          <div style={{ width: 36, height: 4, borderRadius: 2, background: '#E0D8D0' }} />
         </div>
 
-        {/* Location */}
-        <button
-          onClick={onOpenLocation}
-          className="flex items-center gap-3 px-4 rounded-2xl cursor-pointer text-left"
-          style={{ height: 52, border: '1.5px solid #E8E0D8', background: 'white' }}
-        >
-          <MapPin className="w-4 h-4 shrink-0" style={{ color: '#A8A29E' }} strokeWidth={1.7} />
-          <span style={{ fontSize: 15, color: '#1C1917' }}>
-            {selectedLocation?.label || 'Τρέχουσα τοποθεσία'}
-          </span>
-        </button>
+        {/* Header */}
+        <div className="flex items-center justify-between px-5 pt-3 pb-4 shrink-0">
+          <span className="text-[22px] font-bold" style={{ color: '#1C1917' }}>Αναζήτηση</span>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', lineHeight: 0 }}>
+            <X className="w-6 h-6" style={{ color: '#1C1917' }} />
+          </button>
+        </div>
 
-        {/* Date */}
-        <div
-          className="flex items-center gap-3 px-4 rounded-2xl"
-          style={{ height: 52, border: '1.5px solid #E8E0D8' }}
-        >
-          <Calendar className="w-4 h-4 shrink-0" style={{ color: '#A8A29E' }} strokeWidth={1.7} />
-          <span style={{ fontSize: 15, color: '#A8A29E' }}>Οποιαδήποτε στιγμή</span>
+        {/* Input rows */}
+        <div className="px-5 flex flex-col gap-3 shrink-0">
+          <div className="flex items-center gap-3 px-4 rounded-2xl" style={{ height: 52, border: '1.5px solid #E8E0D8' }}>
+            <Search className="w-4 h-4 shrink-0" style={{ color: '#A8A29E' }} strokeWidth={1.7} />
+            <input
+              ref={inputRef}
+              value={query}
+              onChange={e => setQuery(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && goSearch()}
+              placeholder="Οποιεσδήποτε θεραπείες, χώροι ή επαγγελμ..."
+              className="flex-1 bg-transparent outline-none"
+              style={{ fontSize: 15, color: '#1C1917', border: 'none' }}
+            />
+          </div>
+          <button onClick={onOpenLocation} className="flex items-center gap-3 px-4 rounded-2xl cursor-pointer text-left" style={{ height: 52, border: '1.5px solid #E8E0D8', background: 'white' }}>
+            <MapPin className="w-4 h-4 shrink-0" style={{ color: '#A8A29E' }} strokeWidth={1.7} />
+            <span style={{ fontSize: 15, color: '#1C1917' }}>{selectedLocation?.label || 'Τρέχουσα τοποθεσία'}</span>
+          </button>
+          <div className="flex items-center gap-3 px-4 rounded-2xl" style={{ height: 52, border: '1.5px solid #E8E0D8' }}>
+            <Calendar className="w-4 h-4 shrink-0" style={{ color: '#A8A29E' }} strokeWidth={1.7} />
+            <span style={{ fontSize: 15, color: '#A8A29E' }}>Οποιαδήποτε στιγμή</span>
+          </div>
+        </div>
+
+        {/* Scrollable body */}
+        <div ref={scrollRef} onScroll={handleScroll} className="flex-1 overflow-y-auto px-5 pt-5 pb-2">
+
+          {/* Recent searches */}
+          {recent.length > 0 && (
+            <div className="mb-5">
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-[16px] font-bold" style={{ color: '#1C1917' }}>Πρόσφατα</p>
+                <button onClick={clearRecent} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+                  <span className="text-[13px] font-semibold" style={{ color: '#7C3AED' }}>Εκκαθάριση</span>
+                </button>
+              </div>
+              {recent.map((r, i) => (
+                <button
+                  key={i}
+                  onClick={() => { setQuery(r); inputRef.current?.focus() }}
+                  className="w-full flex items-center gap-3 py-3 cursor-pointer"
+                  style={{ background: 'none', border: 'none', borderBottom: i < recent.length - 1 ? '1px solid #F5F0EB' : 'none', textAlign: 'left' }}
+                >
+                  <div className="w-9 h-9 rounded-full flex items-center justify-center shrink-0" style={{ background: '#EEF2FF' }}>
+                    <Search className="w-4 h-4" style={{ color: '#7C3AED' }} strokeWidth={1.7} />
+                  </div>
+                  <span className="text-[15px]" style={{ color: '#1C1917' }}>{r}</span>
+                </button>
+              ))}
+            </div>
+          )}
+
+          {/* Categories */}
+          <p className="text-[16px] font-bold mb-3" style={{ color: '#1C1917' }}>Κατηγορίες</p>
+          <div className="grid grid-cols-2 gap-2.5">
+            {HOME_CATEGORIES.map(({ key, label, icon }) => (
+              <button
+                key={key || 'all'}
+                onClick={() => goSearch(key)}
+                className="flex flex-col items-center gap-2 py-3 px-3 rounded-2xl cursor-pointer"
+                style={{ border: '1.5px solid #E8E0D8', background: '#FAFAFA' }}
+              >
+                <HomeCatIcon icon={icon} />
+                <span className="text-[12px] font-medium text-center leading-snug" style={{ color: '#1C1917' }}>
+                  {label}
+                </span>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Bottom button */}
+        <div className="px-5 py-4 shrink-0" style={{ borderTop: '1px solid #F0EAE3' }}>
+          <button
+            onClick={() => goSearch()}
+            className="w-full py-4 rounded-full font-semibold cursor-pointer"
+            style={{ background: '#1C1917', color: 'white', border: 'none', fontSize: 16 }}
+          >
+            Αναζήτηση
+          </button>
         </div>
       </div>
-
-      {/* Categories */}
-      <div className="flex-1 overflow-y-auto px-5 pt-6 pb-2">
-        <p className="text-[18px] font-bold mb-4" style={{ color: '#1C1917' }}>Κατηγορίες</p>
-        <div className="grid grid-cols-2 gap-3">
-          {HOME_CATEGORIES.map(({ key, label, icon }) => (
-            <button
-              key={key || 'all'}
-              onClick={() => goSearch(key)}
-              className="flex flex-col items-center gap-3 py-5 px-3 rounded-2xl cursor-pointer"
-              style={{ border: '1.5px solid #E8E0D8', background: '#FAFAFA' }}
-            >
-              <HomeCatIcon icon={icon} large />
-              <span className="text-[13px] font-medium text-center leading-snug" style={{ color: '#1C1917' }}>
-                {label}
-              </span>
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Bottom button */}
-      <div className="px-5 py-4 shrink-0" style={{ borderTop: '1px solid #F0EAE3' }}>
-        <button
-          onClick={() => goSearch()}
-          className="w-full py-4 rounded-full font-semibold cursor-pointer"
-          style={{ background: '#1C1917', color: 'white', border: 'none', fontSize: 16 }}
-        >
-          Αναζήτηση
-        </button>
-      </div>
-    </div>
+    </>
   )
 }
 
