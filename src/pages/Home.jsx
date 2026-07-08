@@ -167,13 +167,12 @@ function HomeSearchModal({ onClose, selectedLocation, onOpenLocation, onSetQuery
           animation: 'slideUpSheet 0.35s cubic-bezier(0.22,1,0.36,1) both',
         }}
       >
-        {/* SearchPage — slides in on top when search input is tapped */}
-        {searchPageOpen && (
-          <SearchPage
-            onClose={(key) => { setSearchPageOpen(false); if (key) setQuery(key) }}
-            onCloseAll={(key) => { setSearchPageOpen(false); onClose(); if (key) onSetQuery?.(key) }}
-          />
-        )}
+        {/* Always in DOM — display toggled to avoid mount/unmount flash */}
+        <SearchPage
+          visible={searchPageOpen}
+          onClose={(key) => { setSearchPageOpen(false); if (key) setQuery(key) }}
+          onCloseAll={(key) => { setSearchPageOpen(false); onClose(); if (key) onSetQuery?.(key) }}
+        />
 
         {/* Drag handle */}
         <div className="flex justify-center pt-3 pb-1 shrink-0">

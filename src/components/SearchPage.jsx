@@ -73,7 +73,7 @@ function CatCircle({ category }) {
   )
 }
 
-export default function SearchPage({ onClose, onCloseAll }) {
+export default function SearchPage({ onClose, onCloseAll, visible }) {
   const navigate = useNavigate()
   const [query, setQuery] = useState('')
   const [tab, setTab] = useState('all')
@@ -82,9 +82,14 @@ export default function SearchPage({ onClose, onCloseAll }) {
   const userLoc = loadLocation()
 
   useEffect(() => {
+    if (!visible) {
+      setQuery('')
+      setTab('all')
+      return
+    }
     const t = setTimeout(() => inputRef.current?.focus({ preventScroll: true }), 80)
     return () => clearTimeout(t)
-  }, [])
+  }, [visible])
 
   useEffect(() => {
     supabase
@@ -134,7 +139,7 @@ export default function SearchPage({ onClose, onCloseAll }) {
     <>
       <div
         className="fixed inset-0 z-[450] flex flex-col bg-white overflow-hidden"
-        style={{ borderRadius: '20px 20px 0 0' }}
+        style={{ borderRadius: '20px 20px 0 0', display: visible ? 'flex' : 'none' }}
       >
         {/* Header */}
         <div className="flex items-center gap-3 px-4 pt-6 pb-3 shrink-0">
