@@ -200,8 +200,8 @@ function HomeSearchModal({ onClose, selectedLocation, onOpenLocation, onSetQuery
               style={{ height: 52, border: '1.5px solid #E8E0D8', background: 'white' }}
             >
               <Search className="w-4 h-4 shrink-0" style={{ color: '#A8A29E' }} strokeWidth={1.7} />
-              <span className="flex-1 text-[15px]" style={{ color: '#A8A29E' }}>
-                Οποιεσδήποτε θεραπείες, χώροι ή επαγγελμ...
+              <span className="flex-1 text-[15px]" style={{ color: query ? '#3D2B1F' : '#A8A29E' }}>
+                {query || 'Οποιεσδήποτε θεραπείες, χώροι ή επαγγελμ...'}
               </span>
             </button>
             <button onClick={onOpenLocation} className="flex items-center gap-3 px-4 rounded-2xl cursor-pointer text-left" style={{ height: 52, border: '1.5px solid #E8E0D8', background: 'white' }}>
