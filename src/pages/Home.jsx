@@ -184,32 +184,32 @@ function HomeSearchModal({ onClose, selectedLocation, onOpenLocation }) {
           </button>
         </div>
 
-        {/* Input rows */}
-        <div className="px-5 flex flex-col gap-3 shrink-0">
-          <div className="flex items-center gap-3 px-4 rounded-2xl" style={{ height: 52, border: '1.5px solid #E8E0D8' }}>
-            <Search className="w-4 h-4 shrink-0" style={{ color: '#A8A29E' }} strokeWidth={1.7} />
-            <input
-              ref={inputRef}
-              value={query}
-              onChange={e => setQuery(e.target.value)}
-              onKeyDown={e => e.key === 'Enter' && goSearch()}
-              placeholder="Οποιεσδήποτε θεραπείες, χώροι ή επαγγελμ..."
-              className="flex-1 bg-transparent outline-none"
-              style={{ fontSize: 15, color: '#1C1917', border: 'none' }}
-            />
-          </div>
-          <button onClick={onOpenLocation} className="flex items-center gap-3 px-4 rounded-2xl cursor-pointer text-left" style={{ height: 52, border: '1.5px solid #E8E0D8', background: 'white' }}>
-            <MapPin className="w-4 h-4 shrink-0" style={{ color: '#A8A29E' }} strokeWidth={1.7} />
-            <span style={{ fontSize: 15, color: '#1C1917' }}>{selectedLocation?.label || 'Τρέχουσα τοποθεσία'}</span>
-          </button>
-          <div className="flex items-center gap-3 px-4 rounded-2xl" style={{ height: 52, border: '1.5px solid #E8E0D8' }}>
-            <Calendar className="w-4 h-4 shrink-0" style={{ color: '#A8A29E' }} strokeWidth={1.7} />
-            <span style={{ fontSize: 15, color: '#A8A29E' }}>Οποιαδήποτε στιγμή</span>
-          </div>
-        </div>
+        {/* Scrollable body — fields + recent + categories all scroll together */}
+        <div ref={scrollRef} className="flex-1 overflow-y-auto px-5 pb-2">
 
-        {/* Scrollable body */}
-        <div ref={scrollRef} className="flex-1 overflow-y-auto px-5 pt-5 pb-2">
+          {/* Input rows */}
+          <div className="flex flex-col gap-3 pb-5">
+            <div className="flex items-center gap-3 px-4 rounded-2xl" style={{ height: 52, border: '1.5px solid #E8E0D8' }}>
+              <Search className="w-4 h-4 shrink-0" style={{ color: '#A8A29E' }} strokeWidth={1.7} />
+              <input
+                ref={inputRef}
+                value={query}
+                onChange={e => setQuery(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && goSearch()}
+                placeholder="Οποιεσδήποτε θεραπείες, χώροι ή επαγγελμ..."
+                className="flex-1 bg-transparent outline-none"
+                style={{ fontSize: 15, color: '#1C1917', border: 'none' }}
+              />
+            </div>
+            <button onClick={onOpenLocation} className="flex items-center gap-3 px-4 rounded-2xl cursor-pointer text-left" style={{ height: 52, border: '1.5px solid #E8E0D8', background: 'white' }}>
+              <MapPin className="w-4 h-4 shrink-0" style={{ color: '#A8A29E' }} strokeWidth={1.7} />
+              <span style={{ fontSize: 15, color: '#1C1917' }}>{selectedLocation?.label || 'Τρέχουσα τοποθεσία'}</span>
+            </button>
+            <div className="flex items-center gap-3 px-4 rounded-2xl" style={{ height: 52, border: '1.5px solid #E8E0D8' }}>
+              <Calendar className="w-4 h-4 shrink-0" style={{ color: '#A8A29E' }} strokeWidth={1.7} />
+              <span style={{ fontSize: 15, color: '#A8A29E' }}>Οποιαδήποτε στιγμή</span>
+            </div>
+          </div>
 
           {/* Recent searches */}
           {recent.length > 0 && (
