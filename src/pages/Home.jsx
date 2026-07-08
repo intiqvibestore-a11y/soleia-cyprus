@@ -62,11 +62,9 @@ function saveToRecent(q) {
   localStorage.setItem(RECENT_KEY, JSON.stringify([q, ...prev]))
 }
 
-function HomeSearchModal({ onClose, selectedLocation, onOpenLocation, onSetQuery }) {
+function HomeSearchModal({ onClose, selectedLocation, onOpenLocation, query, onQueryChange, onOpenSearch }) {
   const navigate = useNavigate()
-  const [query, setQuery] = useState('')
   const [recent, setRecent] = useState(() => loadRecent())
-  const [searchPageOpen, setSearchPageOpen] = useState(false)
   const scrollRef = useRef(null)
   const sheetRef = useRef(null)
 
@@ -167,13 +165,6 @@ function HomeSearchModal({ onClose, selectedLocation, onOpenLocation, onSetQuery
           animation: 'slideUpSheet 0.35s cubic-bezier(0.22,1,0.36,1) both',
         }}
       >
-        {/* Always in DOM — display toggled to avoid mount/unmount flash */}
-        <SearchPage
-          visible={searchPageOpen}
-          onClose={(key) => { setSearchPageOpen(false); if (key) setQuery(key) }}
-          onCloseAll={(key) => { setSearchPageOpen(false); onClose(); if (key) onSetQuery?.(key) }}
-        />
-
         {/* Drag handle */}
         <div className="flex justify-center pt-3 pb-1 shrink-0">
           <div style={{ width: 36, height: 4, borderRadius: 2, background: '#E0D8D0' }} />
@@ -194,7 +185,7 @@ function HomeSearchModal({ onClose, selectedLocation, onOpenLocation, onSetQuery
           <div className="flex flex-col gap-3 pb-5">
             {/* Tapping opens SearchPage */}
             <button
-              onClick={() => setSearchPageOpen(true)}
+              onClick={onOpenSearch}
               className="w-full flex items-center gap-3 px-4 rounded-2xl cursor-pointer text-left"
               style={{ height: 52, border: '1.5px solid #E8E0D8', background: 'white' }}
             >
@@ -225,7 +216,7 @@ function HomeSearchModal({ onClose, selectedLocation, onOpenLocation, onSetQuery
               {recent.map((r, i) => (
                 <button
                   key={i}
-                  onClick={() => { setQuery(r); inputRef.current?.focus() }}
+                  onClick={() => { onQueryChange(r); inputRef.current?.focus() }}
                   className="w-full flex items-center gap-3 py-3 cursor-pointer"
                   style={{ background: 'none', border: 'none', borderBottom: i < recent.length - 1 ? '1px solid #F5F0EB' : 'none', textAlign: 'left' }}
                 >
@@ -349,7 +340,15 @@ export default function Home() {
   const [selectedLocation, setSelectedLocation] = useState(null)
   const [locModalOpen, setLocModalOpen] = useState(false)
   const [searchModalOpen, setSearchModalOpen] = useState(false)
+  const [searchPageOpen, setSearchPageOpen] = useState(false)
+  const [modalSearchQuery, setModalSearchQuery] = useState('')
   const [homePillQuery, setHomePillQuery] = useState('')
+
+  const closeSearchModal = () => {
+    setSearchModalOpen(false)
+    setSearchPageOpen(false)
+    setModalSearchQuery('')
+  }
 
   useEffect(() => {
     setSelectedLocation(loadLocation())
@@ -379,12 +378,21 @@ export default function Home() {
       )}
 
       {searchModalOpen && (
-        <HomeSearchModal
-          onClose={() => setSearchModalOpen(false)}
-          selectedLocation={selectedLocation}
-          onOpenLocation={() => setLocModalOpen(true)}
-          onSetQuery={setHomePillQuery}
-        />
+        <>
+          <HomeSearchModal
+            onClose={closeSearchModal}
+            selectedLocation={selectedLocation}
+            onOpenLocation={() => setLocModalOpen(true)}
+            query={modalSearchQuery}
+            onQueryChange={setModalSearchQuery}
+            onOpenSearch={() => setSearchPageOpen(true)}
+          />
+          <SearchPage
+            visible={searchPageOpen}
+            onClose={(key) => { setSearchPageOpen(false); if (key) setModalSearchQuery(key) }}
+            onCloseAll={(key) => { closeSearchModal(); if (key) setHomePillQuery(key) }}
+          />
+        </>
       )}
 
       <section>
