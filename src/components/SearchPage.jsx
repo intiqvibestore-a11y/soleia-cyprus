@@ -132,13 +132,9 @@ export default function SearchPage({ onClose, onCloseAll }) {
 
   return (
     <>
-      <style>{`@keyframes slideInRight{from{transform:translateX(100%)}to{transform:translateX(0)}}`}</style>
       <div
         className="fixed inset-0 z-[450] flex flex-col bg-white overflow-hidden"
-        style={{
-          borderRadius: '20px 20px 0 0',
-          animation: 'slideInRight 0.28s cubic-bezier(0.22,1,0.36,1) both',
-        }}
+        style={{ borderRadius: '20px 20px 0 0' }}
       >
         {/* Header */}
         <div className="flex items-center gap-3 px-4 pt-6 pb-3 shrink-0">
