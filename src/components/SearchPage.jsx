@@ -143,7 +143,7 @@ export default function SearchPage({ onClose, onCloseAll }) {
         {/* Header */}
         <div className="flex items-center gap-3 px-4 pt-6 pb-3 shrink-0">
           <button
-            onClick={onClose}
+            onClick={() => onClose()}
             style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', lineHeight: 0 }}
             aria-label="Back"
           >
